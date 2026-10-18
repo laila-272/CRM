@@ -10,7 +10,7 @@ export default function Layout() {
       <Sidebar open={open} onClose={() => setOpen(false)} />
       <div className="lg:mr-[232px] min-w-0">
         <Navbar onMenu={() => setOpen(true)} />
-        <main className="px-4 sm:px-6 pb-10 pt-5 max-w-[1280px]">
+        <main className="px-4 sm:px-10 pb-10 pt-5 max-w-[1280px]">
           <Outlet />
         </main>
       </div>

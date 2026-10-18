@@ -1,4 +1,4 @@
-export const STATUSES = ["جديد", "مهتم", "ساخن", "متابعة", "بارد"];
+export const STATUSES = ["جديد", "مهتم", "لا رد", "متابعة", "معاينة"];
 export const SOURCES = ["فيسبوك", "سمسار", "الموقع", "ترشيح", "إنستغرام"];
 export const PROJECTS = [
   "مشروع النور",

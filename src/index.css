@@ -1,5 +1,9 @@
-@import "tailwindcss";
 
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
+@import "tailwindcss";
+*{
+    font-family: "Cairo", "Tajawal", system-ui, sans-serif;
+}
 @theme {
     --font-sans: "Cairo", "Tajawal", system-ui, sans-serif;
     --color-brand: #ea580c;
@@ -49,6 +53,7 @@ body {
     background: #fff;
     cursor: pointer;
     transition: background .15s;
+  
 }
 
 .btn:hover {
