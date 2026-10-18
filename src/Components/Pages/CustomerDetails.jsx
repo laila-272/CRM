@@ -196,7 +196,7 @@ export default function CustomerDetails() {
             </div>
           </section>
 
-          <section className="card p-5">
+          <section className="card !p-6">
             <h2 className="text-base font-bold mb-3">ملاحظات</h2>
             <p className="text-[13px] leading-7 text-neutral-700">
               {c.note || "لا توجد ملاحظات."}

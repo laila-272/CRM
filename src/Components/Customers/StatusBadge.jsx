@@ -3,7 +3,7 @@ const styles = {
   مهتم: "bg-[#F3F4F6] text-[#818181] rounded-xl",
   معاينة: "bg-[#F3F4F6] text-[#818181] rounded-xl",
   متابعة: "bg-[#F3F4F6] text-[#818181] rounded-xl",
-  "لا رد": "bg-red-100 text-red-500 rounded-xl",
+  "لا رد": "bg-[#FFF1F2] text-[#D92D20] rounded-xl",
 };
 export default function StatusBadge({ status }) {
   return (
