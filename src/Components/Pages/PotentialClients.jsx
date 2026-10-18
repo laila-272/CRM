@@ -107,16 +107,14 @@ export default function PotentialClients() {
   const nums = Array.from({ length: pages }, (_, i) => i + 1);
 
   return (
-    <div className="mx-auto w-full max-w-[1800px] min-w-0 space-y-4 px-2 sm:px-3 lg:space-y-5 lg:px-4 xl:px-6 2xl:space-y-6 2xl:px-8">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
-        <h1 className="pt-2 text-xl font-extrabold sm:text-2xl 2xl:text-3xl">
-          العملاء المحتملون
-        </h1>
+        <h1 className="text-2xl pt-2 font-extrabold">العملاء المحتملون</h1>
       </div>
 
-      <div className="search flex min-w-0 flex-col items-stretch justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="search flex items-center justify-between gap-3 flex-wrap">
         {" "}
-        <div className="relative w-full min-w-0 sm:w-[min(360px,100%)] xl:w-[420px] 2xl:w-[480px]">
+        <div className="relative w-full sm:w-[360px]">
           <Search
             size={14}
             className="absolute top-1/2 -translate-y-1/2 left-3 text-neutral-400"
@@ -131,7 +129,7 @@ export default function PotentialClients() {
             }}
           />
         </div>
-        <div className="flex min-w-0 flex-wrap gap-2 sm:justify-end">
+        <div className="flex flex-wrap gap-2 ">
           <button className="btn" onClick={exportCsv}>
             تصدير
             <ChevronDown size={12} />
@@ -150,7 +148,7 @@ export default function PotentialClients() {
       </div>
 
       {showFilters && (
-        <div className="card grid grid-cols-1 items-end gap-2 p-3 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-3">
+        <div className="card p-3 grid sm:grid-cols-4 gap-2 items-end">
           <select
             className="input"
             value={filters.status}
@@ -193,7 +191,7 @@ export default function PotentialClients() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 pb-5 pt-2 sm:grid-cols-2 xl:grid-cols-4 2xl:gap-5 2xl:pb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2 pb-8">
         <Stat
           label=" صفقات اليوم "
           value={customers.filter((c) => c.status === "مهتم").length}
@@ -209,9 +207,9 @@ export default function PotentialClients() {
         <Stat label="إجمالي العملاء" value={customers.length} />
       </div>
 
-      <div className="card min-w-0 overflow-hidden">
-        <div className="w-full overflow-x-auto overscroll-x-contain">
-          <table className="w-full min-w-[1000px] text-right text-xs xl:min-w-[1100px] 2xl:min-w-full 2xl:text-[13px]">
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12px] text-right min-w-[900px]">
             <thead>
               <tr className="text-[#111111] text-[14px] border-b border-line bg-[#F5F5F5]">
                 {[
@@ -227,7 +225,7 @@ export default function PotentialClients() {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="whitespace-nowrap px-3 py-4 font-semibold xl:px-4 xl:py-5 2xl:px-5 2xl:py-6"
+                    className="font-semibold px-3 py-6 whitespace-nowrap"
                   >
                     {h}
                   </th>
@@ -241,33 +239,27 @@ export default function PotentialClients() {
                   className="border-b border-line last:border-0 hover:bg-neutral-50   even:bg-[#F5F5F5]
     odd:bg-white transition-colors"
                 >
-                  <td className="whitespace-nowrap px-3 py-3 text-[13px] font-medium xl:px-4 xl:text-sm 2xl:px-5 2xl:py-4">
+                  <td className="px-4 py-3 font-medium text-[14px] whitespace-nowrap ">
                     {c.name}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 text-neutral-600 xl:px-4 2xl:px-5 2xl:py-4">
-                    {c.owner}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4">
+                  <td className="px-3 py-3 text-neutral-600">{c.owner}</td>
+                  <td className="px-3 py-3">
                     <span className="ltr-text">{c.phone}</span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4">
-                    {c.project}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4">
+                  <td className="px-3 py-3">{c.project}</td>
+                  <td className="px-3 py-3 whitespace-nowrap">
                     <span className="ltr-text">{c.budget}</span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4">
-                    {c.source}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4">
+                  <td className="px-3 py-3">{c.source}</td>
+                  <td className="px-3 py-3">
                     <StatusBadge status={c.status} />
                   </td>
                   <td
-                    className={`whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4 ${c.status === "لا رد" ? "font-semibold text-red-600" : ""}`}
+                    className={`px-3 py-3 ${c.status === "لا رد" ? "text-red-600 font-semibold" : ""}`}
                   >
                     {c.nextFollowUp}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3 xl:px-4 2xl:px-5 2xl:py-4">
+                  <td className="px-3 py-3">
                     <button
                       className="btn text-[#7F7F7F] !px-4 !h-7 !px-3 !bg-[#E3E3E3] !border-transparent !rounded-3xl "
                       onClick={() => navigate(`/customer-details/${c.id}`)}
@@ -292,12 +284,12 @@ export default function PotentialClients() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-500">
+      <div className="flex items-center justify-between text-[12px] text-neutral-500">
         <span>
           عرض {filtered.length ? (cur - 1) * PAGE_SIZE + 1 : 0}–
           {Math.min(cur * PAGE_SIZE, filtered.length)} من {filtered.length}
         </span>
-        <div className="flex max-w-full flex-wrap items-center gap-1" dir="rtl">
+        <div className="flex items-center gap-1" dir="rtl">
           <button
             className="w-7 h-7 grid place-items-center rounded-full hover:bg-neutral-200 disabled:opacity-30"
             disabled={cur === 1}
