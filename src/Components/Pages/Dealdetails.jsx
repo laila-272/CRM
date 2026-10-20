@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronDown, MessageCircle } from "lucide-react";
+import { ChevronDown, MessageCircle,Pencil } from "lucide-react";
 import {
   getDeal,
   updateDeal,
@@ -8,6 +8,7 @@ import {
   CLOSING_STAGE,
   money,
 } from "../../data/deals.js";
+import { FaWhatsapp } from "react-icons/fa";
 
 const NOTE_TYPES = ["ملاحظة", "اجتماع", "إيميل", "واتساب", "مكالمة"];
 
@@ -152,38 +153,45 @@ export default function DealDetails() {
       </Link>
       {/* Header */}
       <div className="mt-2 flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-3">
-        <div className="flex items-center gap-2 lg:order-2">
+        <div className="flex flex-wrap gap-2 items-center lg:order-2">
           <a
-            href={wa}
+            // href={wa}
             target="_blank"
             rel="noreferrer"
             aria-label="واتساب"
-            className="w-8 h-8 rounded-lg bg-green-500 text-white grid place-items-center"
+            className="w-9 h-9 rounded-lg bg-green-500 text-white grid place-items-center hover:bg-green-600"
           >
-            <MessageCircle size={15} />
+            <FaWhatsapp size={20} />{" "}
           </a>
           <div className="relative">
-            <select
-              value={stage}
-              onChange={(e) => moveStage(Number(e.target.value))}
-              aria-label="تغيير المرحلة"
-              className="appearance-none h-8 rounded-lg border border-line bg-white pr-3 pl-7 text-[11px] text-ink outline-none cursor-pointer"
-            >
-              {STAGES.map((s, i) => (
-                <option key={s} value={i}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={11}
-              className="absolute top-1/2 -translate-y-1/2 left-2 text-neutral-400 pointer-events-none"
-            />
+            <button className="btn" onClick={() => setMenu(!menu)}>
+              تصدير <ChevronDown size={12} />
+            </button>
+            {/* {menu && (
+              <div className="absolute z-10 mt-1 card shadow-md min-w-[130px] text-[12px]">
+                <button
+                  className="w-full text-right px-3 py-2 hover:bg-neutral-50"
+                  onClick={exportOne}
+                >
+                  ملف CSV
+                </button>
+              </div>
+            )} */}
           </div>
+          <button className="btn" onClick={() => setEditing(true)}>
+            <Pencil size={12} /> تعديل
+          </button>
+          {/* <button
+            className="btn text-red-600"
+            onClick={() => setConfirmDel(true)}
+          >
+            <Trash2 size={12} /> حذف
+          </button> */}
           <button
-            onClick={() => moveStage(CLOSING_STAGE)}
-            disabled={stage === CLOSING_STAGE}
-            className="h-8 rounded-lg bg-ink text-white px-3 text-[11px] font-semibold disabled:opacity-40"
+            className="btn btn-dark !rounded-4xl"
+            onClick={() => {
+              updateCustomer(c.id, { status: "لا رد" });
+            }}
           >
             + تحويل إلى تعاقد
           </button>

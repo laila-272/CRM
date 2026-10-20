@@ -164,7 +164,7 @@ export default function Brokers() {
         </button>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="my-5 flex gap-2">
         <Chip active={tab === "all"} onClick={() => reset(setTab)("all")}>
           الكل {list.length}
         </Chip>
@@ -183,7 +183,7 @@ export default function Brokers() {
           noValidate
           className={`${card} p-4 space-y-3.5`}
         >
-          <h2 className="text-[12.5px] font-extrabold text-ink">
+          <h2 className="text-[12.5px] font-semibold text-ink">
             إضافة وسيط أو شريك
           </h2>
           <div>
@@ -255,7 +255,7 @@ export default function Brokers() {
         <div className={`${card} p-3 min-w-0`}>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px]">
-              <thead className="bg-[#F7F8FA]">
+              <thead className="bg-[#F7F8FA] ">
                 <tr>
                   {["الاسم", "البريد الإلكتروني", "الهاتف", "المصدر", ""].map(
                     (h, i) => (
@@ -275,7 +275,7 @@ export default function Brokers() {
                     }`}
                   >
                     {" "}
-                    <td className={`${td} font-bold text-[12px]`}>
+                    <td className={`${td} font-semibold text-[14px] `}>
                       {b.name}
                       {/* <span className="mr-2 text-[9px] font-normal text-neutral-400">
                         {b.type}

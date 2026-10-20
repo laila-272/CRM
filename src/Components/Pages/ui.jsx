@@ -1,5 +1,4 @@
-import { Search } from "lucide-react";
-
+import { Search, ChevronDown } from "lucide-react";
 export const egp = (n, digits = 0) =>
   `${Number(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })} EGP`;
 
@@ -35,23 +34,33 @@ export function SearchBox({ value, onChange, placeholder, className = "" }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-9 rounded-lg border border-line bg-white pr-8 pl-3 text-[11px] outline-none focus:border-neutral-400"
+        className="w-full h-9 rounded-lg border border-line bg-white pr-8 pl-3 text-[13px] outline-none focus:border-neutral-400"
       />
     </div>
   );
 }
 
+
+
 export function Select({ value, onChange, children }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-9 rounded-lg border border-line bg-white px-2.5 text-[11px] text-neutral-600 outline-none cursor-pointer"
-    >
-      {children}
-    </select>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-9 w-full appearance-none rounded-lg border border-line bg-white pr-7 pl-3 text-[11px] font-semibold outline-none cursor-pointer"
+      >
+        {children}
+      </select>
+
+      <ChevronDown
+        size={13}
+        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500"
+      />
+    </div>
   );
 }
+
 
 export function Chip({ active, onClick, children }) {
   return (
@@ -139,5 +148,5 @@ export function downloadCsv(filename, head, rows) {
 }
 
 export const th =
-  "px-3 py-2.5 text-[10.5px] font-semibold text-neutral-400 text-right whitespace-nowrap";
+  "px-3 py-3.5 text-[12px] font-semibold text-neutral-400 text-right whitespace-nowrap ";
 export const td = "px-3 py-3 text-[11px] text-ink whitespace-nowrap";

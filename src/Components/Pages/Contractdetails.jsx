@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { FileText, MessageCircle, Printer } from "lucide-react";
+import {
+  FileText,
+  MessageCircle,
+  Printer,
+  ChevronDown,
+  Pencil,
+} from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+
 import {
   getContract,
   setContractStatus,
@@ -23,7 +31,7 @@ function Field({ label, value, className = "" }) {
   return (
     <div className={`min-w-0 ${className}`}>
       <div className="text-[9.5px] text-neutral-400">{label}</div>
-      <div className="mt-1 text-[11.5px] font-bold text-ink break-words">
+      <div className="mt-1 text-[13px] font-semibold text-ink break-words">
         {value}
       </div>
     </div>
@@ -76,28 +84,47 @@ export default function ContractDetails() {
             {c.customer} - {c.company} — المسؤول {c.owner}
           </p>
         </div>
-        <div className="flex items-center gap-2 print:hidden">
+        <div className="flex flex-wrap gap-2 items-center">
           <a
-            href={`https://wa.me/2${c.phone.replace(/^0/, "")}`}
+            // href={wa}
             target="_blank"
             rel="noreferrer"
             aria-label="واتساب"
-            className="w-8 h-8 rounded-lg bg-green-500 text-white grid place-items-center"
+            className="w-9 h-9 rounded-lg bg-green-500 text-white grid place-items-center hover:bg-green-600"
           >
-            <MessageCircle size={15} />
+            <FaWhatsapp size={20} />{" "}
           </a>
-          <select
-            value={c.status}
-            onChange={(e) => changeStatus(e.target.value)}
-            aria-label="تغيير الحالة"
-            className="h-8 rounded-lg border border-line bg-white px-2.5 text-[11px] outline-none cursor-pointer"
+          <div className="relative">
+            <button className="btn" onClick={() => setMenu(!menu)}>
+              تصدير <ChevronDown size={12} />
+            </button>
+            {/* {menu && (
+              <div className="absolute z-10 mt-1 card shadow-md min-w-[130px] text-[12px]">
+                <button
+                  className="w-full text-right px-3 py-2 hover:bg-neutral-50"
+                  onClick={exportOne}
+                >
+                  ملف CSV
+                </button>
+              </div>
+            )} */}
+          </div>
+          <button className="btn" onClick={() => setEditing(true)}>
+            <Pencil size={12} /> تعديل
+          </button>
+          {/* <button
+            className="btn text-red-600"
+            onClick={() => setConfirmDel(true)}
           >
-            {statuses.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
-          <button onClick={() => window.print()} className={btnDark}>
-            <Printer size={13} /> طباعة
+            <Trash2 size={12} /> حذف
+          </button> */}
+          <button
+            className="btn btn-dark !rounded-4xl"
+            onClick={() => {
+              updateCustomer(c.id, { status: "لا رد" });
+            }}
+          >
+            +العودة للعقود
           </button>
         </div>
       </div>
@@ -106,19 +133,37 @@ export default function ContractDetails() {
         {/* Main column */}
         <div className="space-y-4 min-w-0">
           <Panel title="بيانات العقد">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4">
-              <Field label="رقم المستند" value={c.id} />
-              <Field label="نوع المستند" value={c.kind} />
-              <Field label="العميل" value={c.customer} />
-              <Field label="الصفقة المرتبطة" value={c.deal} />
-              <Field label="الحالة" value={c.status} />
-              <Field label="قيمة العقد" value={egp(c.value)} />
-              <Field label="تاريخ البداية" value={c.startDate} />
-              <Field label="تاريخ الانتهاء" value={c.endDate} />
-              <Field label="تاريخ التوقيع" value={c.signDate} />
-              <Field label="التجديد" value={c.renewal} />
-              <Field label="المراجعة القانونية" value={c.legal} />
-              <Field label="المسؤول" value={c.owner} />
+            <div className="grid grid-cols-2 gap-x-4">
+              {[
+                ["رقم العقد ", c.id],
+                ["نوع العقد", c.kind],
+                ["العميل", c.customer],
+                ["الصفقة المرتبطة", c.deal],
+                // ["الحالة", c.status],
+                // ["قيمة العقد", egp(c.value)],
+                ["تاريخ البداية", c.startDate],
+                ["تاريخ الانتهاء", c.endDate],
+                [" آخر موعد للتوقيع", c.signDate],
+                ["التجديد التلقائي", c.renewal],
+                ["المسؤول", c.owner],
+                ["المراجعة القانونية", c.legal],
+              ]
+                .reduce((rows, item, i, arr) => {
+                  if (i % 2 === 0) {
+                    rows.push(arr.slice(i, i + 2));
+                  }
+                  return rows;
+                }, [])
+                .map((row, i) => (
+                  <div
+                    key={i}
+                    className="col-span-2 grid grid-cols-2 gap-x-4 border-b border-line py-3 last:border-b-0"
+                  >
+                    {row.map(([label, value]) => (
+                      <Field key={label} label={label} value={value} />
+                    ))}
+                  </div>
+                ))}
             </div>
           </Panel>
 
@@ -142,16 +187,18 @@ export default function ContractDetails() {
                 <tbody>
                   {c.payments.map((p) => (
                     <tr key={p.name} className="border-t border-line">
-                      <td className={`${td} font-bold`}>{p.name}</td>
-                      <td className={`${td} text-neutral-500`}>{p.due}</td>
+                      <td className={`${td} py-3.5 font-bold`}>{p.name}</td>
+                      <td className={`${td} py-3.5 text-neutral-500`}>
+                        {p.due}
+                      </td>
                       <td
-                        className={td}
+                        className={`${td} py-3.5`}
                         dir="ltr"
                         style={{ textAlign: "right" }}
                       >
                         {egp(p.amount)}
                       </td>
-                      <td className={td}>
+                      <td className={`${td} py-3.5`}>
                         <span
                           className={`text-[9.5px] font-semibold rounded-full px-2 py-0.5 ${PAY_CLS[p.status]}`}
                         >
@@ -169,7 +216,7 @@ export default function ContractDetails() {
         {/* Side column */}
         <div className="space-y-4 min-w-0">
           <Panel title="التوقيعات">
-            <ul className="space-y-3">
+            <ul className="space-y-5">
               {c.signers.map((s) => (
                 <li key={s.name} className="flex items-center gap-2.5">
                   <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 grid place-items-center text-[10.5px] font-bold">
@@ -196,10 +243,14 @@ export default function ContractDetails() {
           <Panel title="مرفقات العقد">
             <ul className="space-y-3">
               {c.attachments.map((a) => (
-                <li key={a.name} className="flex items-center gap-2.5">
+                <li
+                  key={a.name}
+                  className="flex items-center gap-2.5 border-b border-line pb-3 last:border-b-0"
+                >
                   <span className="w-7 h-7 rounded-lg bg-red-50 text-red-500 grid place-items-center">
                     <FileText size={13} />
                   </span>
+
                   <div className="min-w-0 leading-tight">
                     <div
                       className="text-[10.5px] font-semibold text-ink truncate"
@@ -214,10 +265,16 @@ export default function ContractDetails() {
                 </li>
               ))}
             </ul>
+            <button
+              type="button"
+              className="mt-3 w-full rounded-lg border border-line bg-white py-2.5 text-[11px] font-semibold text-ink hover:bg-neutral-50 transition"
+            >
+              + رفع ملف
+            </button>
           </Panel>
 
           <Panel title="سجل النشاط">
-            <ul className="space-y-3">
+            <ul className="space-y-5">
               {c.activity.map((a, i) => (
                 <li key={i} className="flex gap-2">
                   <span

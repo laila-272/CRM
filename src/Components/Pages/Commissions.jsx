@@ -88,35 +88,59 @@ export default function Commissions() {
 
   return (
     <div dir="rtl" className=" max-w-full">
-      <PageHeader title="العمولات" subtitle="راجع استحقاقات فريق المبيعات والوسطاء وتابع كل عمولة حتى صرفها.">
+      <PageHeader
+        title="العمولات"
+        subtitle="راجع استحقاقات فريق المبيعات والوسطاء وتابع كل عمولة حتى صرفها."
+      >
         <button
-          className={btnDark}
-          onClick={() =>
-            downloadCsv("commissions.csv", ["رقم العقد", "العميل", "المستفيد", "قيمة الصفقة", "النسبة", "مبلغ العمولة", "الاستحقاق", "الحالة"],
-              list.map((c) => [c.id, c.customer, c.beneficiary, c.dealValue, c.pct, c.amount, c.due, c.status]))
-          }
+          className="btn !bg-black text-white !rounded-lg h-9"
+          onClick={() => document.getElementById("broker-name")?.focus()}
         >
-          <Download size={13} /> تصدير
+          + تسجيل صرف عمولة
+        </button>
+        <button className="btn">
+           قواعد العمولات
         </button>
       </PageHeader>
 
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <StatCard icon={CircleDollarSign} value={egp(total, 2)} label="إجمالي العمولات" />
-        <StatCard icon={Wallet} value={egp(paid, 2)} label="العمولات المدفوعة" />
-        <StatCard icon={Briefcase} value={list.length} label="العمولات المعروضة" />
+        <StatCard
+          icon={CircleDollarSign}
+          value={egp(total, 2)}
+          label="إجمالي العمولات"
+        />
+        <StatCard
+          icon={Wallet}
+          value={egp(paid, 2)}
+          label="العمولات المدفوعة"
+        />
+        <StatCard
+          icon={Briefcase}
+          value={list.length}
+          label="العمولات المعروضة"
+        />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="my-5 flex flex-wrap items-center gap-2">
         <SearchBox
           value={q}
           onChange={setFilter(setQ)}
           placeholder="ابحث برقم الصفقة أو العميل أو المندوب..."
-          className="flex-1 min-w-[240px] order-2 sm:order-none"
+          className="flex-1 min-w-[240px] order-2 sm:order-none "
         />
         <div className="flex flex-wrap gap-1.5">
-          <Chip active={status === "all"} onClick={() => setFilter(setStatus)("all")}>الكل {all.length}</Chip>
+          <Chip
+            active={status === "all"}
+            onClick={() => setFilter(setStatus)("all")}
+          >
+            الكل {all.length}
+          </Chip>
           {COMMISSION_STATUSES.map((s) => (
-            <Chip key={s} active={status === s} onClick={() => setFilter(setStatus)(s)}>
+            <Chip
+              key={s}
+              active={status === s}
+              onClick={() => setFilter(setStatus)(s)}
+            >
               {s} {all.filter((c) => c.status === s).length}
             </Chip>
           ))}
@@ -127,8 +151,20 @@ export default function Commissions() {
         <table className="w-full min-w-[860px]">
           <thead className="bg-neutral-50/70">
             <tr>
-              {["رقم العقد", "العميل", "المستفيد", "قيمة الصفقة", "نسبة العمولة", "مبلغ العمولة", "تاريخ الاستحقاق", "الحالة", "الإجراءات"].map((h) => (
-                <th key={h} className={th}>{h}</th>
+              {[
+                "رقم العقد",
+                "العميل",
+                "المستفيد",
+                "قيمة الصفقة",
+                "نسبة العمولة",
+                "مبلغ العمولة",
+                "تاريخ الاستحقاق",
+                "الحالة",
+                "الإجراءات",
+              ].map((h) => (
+                <th key={h} className={th}>
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -136,17 +172,44 @@ export default function Commissions() {
             {rows.map((c) => {
               const dim = c.status === "ملغاة" ? "text-neutral-400" : "";
               return (
-                <tr key={c.id} className={`border-t border-line ${c.status === "مدفوعة" ? "bg-green-50/40" : ""}`}>
-                  <td className={`${td} ${dim}`}>{c.id}</td>
-                  <td className={`${td} ${dim}`}>{c.customer}</td>
-                  <td className={`${td} ${dim}`}>{c.beneficiary}</td>
-                  <td className={`${td} ${dim}`} dir="ltr" style={{ textAlign: "right" }}>{egp(c.dealValue)}</td>
-                  <td className={`${td} ${dim}`}>{c.pct}%</td>
-                  <td className={`${td} ${dim}`} dir="ltr" style={{ textAlign: "right" }}>{egp(c.amount)}</td>
-                  <td className={`${td} ${dim}`}>{c.due}</td>
-                  <td className={`${td} ${ST_CLS[c.status]}`}>{c.status}</td>
-                  <td className={td}>
-                    <button onClick={() => setSelected(c)} className="h-6 rounded-full border border-neutral-300 px-3 text-[10px] hover:bg-neutral-50">
+                <tr
+                  key={c.id}
+                  className={`border-t border-line ${
+                    c.status === "مدفوعة" ? "bg-green-50/40" : ""
+                  }`}
+                >
+                  <td className={`${td} ${dim} py-6`}>{c.id}</td>
+                  <td className={`${td} ${dim} py-6`}>{c.customer}</td>
+                  <td className={`${td} ${dim} py-6`}>{c.beneficiary}</td>
+
+                  <td
+                    className={`${td} ${dim} py-6`}
+                    dir="ltr"
+                    style={{ textAlign: "right" }}
+                  >
+                    {egp(c.dealValue)}
+                  </td>
+
+                  <td className={`${td} ${dim} py-6`}>{c.pct}%</td>
+
+                  <td
+                    className={`${td} ${dim} py-7`}
+                    dir="ltr"
+                    style={{ textAlign: "right" }}
+                  >
+                    {egp(c.amount)}
+                  </td>
+
+                  <td className={`${td} ${dim} py-6`}>{c.due}</td>
+                  <td className={`${td} ${ST_CLS[c.status]} py-6`}>
+                    {c.status}
+                  </td>
+
+                  <td className={`${td} py-6`}>
+                    <button
+                      onClick={() => setSelected(c)}
+                      className="h-6 rounded-full border border-neutral-300 px-3 text-[10px] hover:bg-neutral-50"
+                    >
                       التفاصيل
                     </button>
                   </td>
@@ -155,7 +218,12 @@ export default function Commissions() {
             })}
             {!rows.length && (
               <tr>
-                <td colSpan={9} className="p-8 text-center text-[11px] text-neutral-400">لا توجد عمولات مطابقة</td>
+                <td
+                  colSpan={9}
+                  className="p-8 text-center text-[11px] text-neutral-400"
+                >
+                  لا توجد عمولات مطابقة
+                </td>
               </tr>
             )}
           </tbody>
@@ -170,29 +238,54 @@ export default function Commissions() {
       />
 
       {/* Monthly chart (pure CSS) */}
-      <section className={`${card} mt-4 p-4`}>
+      <section className={`${card} mt-4 p-4 py-7`}>
         <div className="flex items-center justify-between">
-          <h2 className="text-[12.5px] font-extrabold text-ink">نظرة عامة على العمولات الشهرية</h2>
-          <span className="text-[10px] text-neutral-400">مايو – أكتوبر 2026 · جنيه مصري</span>
+          <h2 className="text-[12.5px] font-extrabold text-ink">
+            نظرة عامة على العمولات الشهرية
+          </h2>
+          <span className="text-[10px] text-neutral-400">
+            مايو – أكتوبر 2026 · جنيه مصري
+          </span>
         </div>
         <div className="mt-4 flex items-end justify-around gap-2 h-[150px]">
           {MONTHLY.map((m, i) => {
             const last = i === MONTHLY.length - 1;
-            const shade = ["bg-neutral-200", "bg-neutral-300", "bg-neutral-500", "bg-neutral-300", "bg-slate-700", "bg-ink"][i];
+            const shade = [
+              "bg-neutral-200",
+              "bg-neutral-300",
+              "bg-neutral-500",
+              "bg-neutral-300",
+              "bg-slate-700",
+              "bg-ink",
+            ][i];
             return (
-              <div key={m.m} className="flex flex-col items-center justify-end h-full flex-1 max-w-[56px]">
-                <div className={`text-[10px] mb-1 text-center leading-tight ${last ? "font-extrabold text-ink" : "text-neutral-500"}`}>
+              <div
+                key={m.m}
+                className="flex flex-col items-center justify-end h-full flex-1 max-w-[40px]"
+              >
+                <div
+                  className={`text-[10px] mb-1 text-center leading-tight ${last ? "font-extrabold text-ink" : "text-neutral-500"}`}
+                >
                   {m.v} ألف
                 </div>
-                <div className={`w-full rounded-t-sm ${shade}`} style={{ height: `${(m.v / max) * 100}px` }} />
-                <div className={`mt-1.5 text-[10px] ${last ? "font-extrabold text-ink" : "text-neutral-500"}`}>{m.m}</div>
+                <div
+                  className={`w-full rounded-t-sm ${shade}`}
+                  style={{ height: `${(m.v / max) * 100}px` }}
+                />
+                <div
+                  className={`mt-1.5 text-[10px] ${last ? "font-extrabold text-ink" : "text-neutral-500"}`}
+                >
+                  {m.m}
+                </div>
               </div>
             );
           })}
         </div>
       </section>
 
-      {selected && <DetailsModal c={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <DetailsModal c={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 }
