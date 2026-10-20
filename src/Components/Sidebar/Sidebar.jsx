@@ -37,12 +37,28 @@ const groups = [
       { label: "العملاء المحتملون", to: "/potential-clients", icon: Users },
       {
         label: "جهات الاتصال و العملاء",
-        to: "/potential-clients",
+        to: "#",
         icon: Users,
       },
       { label: "الصفقات", to: "/deals", icon: Handshake },
-      { label: "المتابعات", to: "#", icon: CalendarCheck },
-      { label: "العروض والعقود", to: "#", icon: FileText },
+      {
+        label: "العقود و عروض الاسعار ",
+        to: "/contracts",
+        icon: Handshake,
+      },
+      { label: "العمولات", to: "/commissions", icon: FileText },
+
+      {
+        label: " الوسطاء والشركاء",
+        to: "/brokers",
+        icon: Handshake,
+      },
+      { label: "المتابعات و المهام", to: "#", icon: CalendarCheck },
+      { label: "الاجتماعات والتقويم", to: "#", icon: FileText },
+      { label: "منشئ النماذج", to: "#", icon: FileText },
+      { label: "التقارير", to: "#", icon: FileText },
+
+      { label: "اعدادات ال CRM", to: "#", icon: FileText },
     ],
   },
   { title: "المحاسبة", icon: Wallet, items: [{ label: "الفواتير", to: "#" }] },

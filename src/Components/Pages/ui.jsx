@@ -1,0 +1,143 @@
+import { Search } from "lucide-react";
+
+export const egp = (n, digits = 0) =>
+  `${Number(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })} EGP`;
+
+export const card = "bg-white border border-line rounded-xl";
+
+export function PageHeader({ title, subtitle, children }) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 className="text-[26px] font-extrabold text-ink leading-tight">
+          {title}
+        </h1>
+        <p className="mt-1 text-[11px] text-neutral-500">{subtitle}</p>
+      </div>
+      <div className="flex items-center gap-2">{children}</div>
+    </div>
+  );
+}
+
+export const btnDark =
+  "inline-flex items-center gap-1.5 h-8 rounded-[4px] bg-ink text-white px-3.5 text-[11.5px] font-semibold";
+export const btnLight =
+  "inline-flex items-center gap-1.5 h-8 rounded-full border border-line bg-white px-3.5 text-[11.5px] font-semibold text-ink";
+
+export function SearchBox({ value, onChange, placeholder, className = "" }) {
+  return (
+    <div className={`relative ${className}`}>
+      <Search
+        size={13}
+        className="absolute top-1/2 -translate-y-1/2 right-3 text-neutral-400"
+      />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full h-9 rounded-lg border border-line bg-white pr-8 pl-3 text-[11px] outline-none focus:border-neutral-400"
+      />
+    </div>
+  );
+}
+
+export function Select({ value, onChange, children }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-9 rounded-lg border border-line bg-white px-2.5 text-[11px] text-neutral-600 outline-none cursor-pointer"
+    >
+      {children}
+    </select>
+  );
+}
+
+export function Chip({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`h-7 rounded-full px-3 text-[10.5px] font-semibold border transition-colors ${
+        active
+          ? "bg-ink text-white border-ink"
+          : "bg-white text-neutral-500 border-line hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function StatCard({ icon: Icon, tag, value, label }) {
+  return (
+    <div className={`${card} p-4`}>
+      <div className="flex items-center justify-between">
+        <Icon size={16} className="text-neutral-500" />
+        {tag && (
+          <span className="text-[9.5px] bg-neutral-100 text-neutral-500 rounded-full px-2 py-0.5">
+            {tag}
+          </span>
+        )}
+      </div>
+      <div
+        className="mt-3 text-[26px] leading-none font-extrabold text-ink"
+        dir="ltr"
+        style={{ textAlign: "right" }}
+      >
+        {value}
+      </div>
+      <div className="mt-1.5 text-[10.5px] text-neutral-500">{label}</div>
+    </div>
+  );
+}
+
+function pageList(page, pages) {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+  const set = new Set([1, pages, page - 1, page, page + 1]);
+  return [...set].filter((p) => p >= 1 && p <= pages).sort((a, b) => a - b);
+}
+
+export function PagerBar({ page, pages, onPage, info }) {
+  return (
+    <div className="flex items-center justify-between gap-2 px-1 pt-3 text-[10.5px] text-neutral-500">
+      <span>{info}</span>
+      <div className="flex items-center gap-1" dir="ltr">
+        {pageList(page, pages).map((p, i, arr) => (
+          <span key={p} className="flex items-center gap-1">
+            {i > 0 && p - arr[i - 1] > 1 && <span>…</span>}
+            <button
+              onClick={() => onPage(p)}
+              aria-current={p === page}
+              className={`w-6 h-6 rounded-full text-[10.5px] ${
+                p === page
+                  ? "bg-ink text-white"
+                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+              }`}
+            >
+              {p}
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function downloadCsv(filename, head, rows) {
+  const csv =
+    "\ufeff" +
+    [head, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+  );
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+export const th =
+  "px-3 py-2.5 text-[10.5px] font-semibold text-neutral-400 text-right whitespace-nowrap";
+export const td = "px-3 py-3 text-[11px] text-ink whitespace-nowrap";
