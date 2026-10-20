@@ -4,6 +4,8 @@ import Layout from "./Components/Layout/Layout.jsx";
 import PotentialClients from "./Components/Pages/PotentialClients.jsx";
 import CustomerDetails from "./Components/Pages/CustomerDetails.jsx";
 import { CustomersProvider } from "./context/CustomersContext.jsx";
+import Deals from "./Components/Pages/Deals.jsx";
+import DealDetails from "./Components/Pages/Dealdetails.jsx";
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -22,6 +24,14 @@ const router = createBrowserRouter([
       {
         path: "customer-details/:id",
         element: <CustomerDetails />,
+      },
+      {
+        path: "deals",
+        element: <Deals />,
+      },
+      {
+        path: "deals/:id",
+        element: <DealDetails />,
       },
     ],
   },
