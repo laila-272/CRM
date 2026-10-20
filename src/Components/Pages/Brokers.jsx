@@ -255,7 +255,7 @@ export default function Brokers() {
         <div className={`${card} p-3 min-w-0`}>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px]">
-              <thead className="bg-neutral-50/70">
+              <thead className="bg-[#F7F8FA]">
                 <tr>
                   {["الاسم", "البريد الإلكتروني", "الهاتف", "المصدر", ""].map(
                     (h, i) => (
@@ -268,12 +268,18 @@ export default function Brokers() {
               </thead>
               <tbody>
                 {rows.map((b) => (
-                  <tr key={b.id} className="border-t border-line">
+                  <tr
+                    key={b.id}
+                    className={`border-line ${
+                      rows[0]?.id === b.id ? "" : "border-t"
+                    }`}
+                  >
+                    {" "}
                     <td className={`${td} font-bold text-[12px]`}>
                       {b.name}
-                      <span className="mr-2 text-[9px] font-normal text-neutral-400">
+                      {/* <span className="mr-2 text-[9px] font-normal text-neutral-400">
                         {b.type}
-                      </span>
+                      </span> */}
                     </td>
                     <td
                       className={`${td} text-neutral-500`}
