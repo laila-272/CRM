@@ -35,11 +35,11 @@ const groups = [
     open: true,
     items: [
       { label: "العملاء المحتملون", to: "/potential-clients", icon: Users },
-      {
-        label: "جهات الاتصال و العملاء",
-        to: "#",
-        icon: Users,
-      },
+      // {
+      //   label: "جهات الاتصال و العملاء",
+      //   to: "#",
+      //   icon: Users,
+      // },
       { label: "الصفقات", to: "/deals", icon: Handshake },
       {
         label: "العقود و عروض الاسعار ",
