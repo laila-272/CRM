@@ -98,9 +98,7 @@ export default function Commissions() {
         >
           + تسجيل صرف عمولة
         </button>
-        <button className="btn">
-           قواعد العمولات
-        </button>
+        <button className="btn">قواعد العمولات</button>
       </PageHeader>
 
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -239,6 +237,7 @@ export default function Commissions() {
 
       {/* Monthly chart (pure CSS) */}
       <section className={`${card} mt-4 p-4 py-7`}>
+        {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-[12.5px] font-extrabold text-ink">
             نظرة عامة على العمولات الشهرية
@@ -247,35 +246,62 @@ export default function Commissions() {
             مايو – أكتوبر 2026 · جنيه مصري
           </span>
         </div>
-        <div className="mt-4 flex items-end justify-around gap-2 h-[150px]">
+
+        {/* Chart Container */}
+        <div className="mt-4 flex h-[150px] items-end justify-around gap-2 select-none">
           {MONTHLY.map((m, i) => {
-            const last = i === MONTHLY.length - 1;
-            const shade = [
+            const isLast = i === MONTHLY.length - 1;
+            const heightPercentage =
+              max > 0 ? Math.min((m.v / max) * 100, 100) : 0;
+
+            const shades = [
               "bg-neutral-200",
               "bg-neutral-300",
               "bg-neutral-500",
               "bg-neutral-300",
               "bg-slate-700",
               "bg-ink",
-            ][i];
+            ];
+            const shadeClass =
+              shades[i] || (isLast ? "bg-ink" : "bg-neutral-300");
+
             return (
               <div
-                key={m.m}
-                className="flex flex-col items-center justify-end h-full flex-1 max-w-[40px]"
+                key={m.m || i}
+                className="flex h-full max-w-[40px] flex-1 flex-col items-center justify-end"
               >
-                <div
-                  className={`text-[10px] mb-1 text-center leading-tight ${last ? "font-extrabold text-ink" : "text-neutral-500"}`}
-                >
-                  {m.v} ألف
+                {/* Value Label - Fixed Height prevents layout shift */}
+                <div className="h-4 flex items-center justify-center mb-1">
+                  <span
+                    className={`text-[10px] whitespace-nowrap leading-none ${
+                      isLast
+                        ? "font-extrabold text-ink"
+                        : "font-normal text-neutral-500"
+                    }`}
+                  >
+                    {m.v} ألف
+                  </span>
                 </div>
-                <div
-                  className={`w-full rounded-t-sm ${shade}`}
-                  style={{ height: `${(m.v / max) * 100}px` }}
-                />
-                <div
-                  className={`mt-1.5 text-[10px] ${last ? "font-extrabold text-ink" : "text-neutral-500"}`}
-                >
-                  {m.m}
+
+                {/* Bar Wrapper */}
+                <div className="w-full flex-1 flex items-end">
+                  <div
+                    className={`w-full rounded-t-sm ${shadeClass}`}
+                    style={{ height: `${heightPercentage}%` }}
+                  />
+                </div>
+
+                {/* Month Label - Fixed Height prevents layout shift */}
+                <div className="h-4 flex items-center justify-center mt-1.5">
+                  <span
+                    className={`text-[10px] whitespace-nowrap leading-none ${
+                      isLast
+                        ? "font-extrabold text-ink"
+                        : "font-normal text-neutral-500"
+                    }`}
+                  >
+                    {m.m}
+                  </span>
                 </div>
               </div>
             );

@@ -24,12 +24,12 @@ function Stat({ icon: Icon, tag, value, label }) {
   return (
     <div className="bg-white border border-line rounded-xl p-3.5">
       <div className="flex items-center justify-between">
-        <Icon size={16} className="text-neutral-500" />
-        <span className="text-[9.5px] bg-neutral-100 text-neutral-500 rounded-full px-2 py-0.5">
+        <Icon size={20} className="text-neutral-500" />
+        <span className="text-[9.5px] bg-neutral-100 text-neutral-500  rounded-full px-2 py-0.5">
           {tag}
         </span>
       </div>
-      <div className="mt-3 text-[26px] leading-none font-extrabold text-ink">
+      <div className="mt-3 text-[26px] leading-none font-semibold text-ink">
         {value}
       </div>
       <div className="mt-1.5 text-[10.5px] text-neutral-500">{label}</div>
