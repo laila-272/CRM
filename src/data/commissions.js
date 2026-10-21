@@ -41,7 +41,7 @@ const first = [
   ["DL-1028", "عمر الزهراني", 3, "1 أكتوبر 2026", "مدفوعة"],
 ];
 
-const all = Array.from({ length: 48 }, (_, i) => {
+const all = Array.from({ length: 20 }, (_, i) => {
   const f = first[i];
   const value = f ? 2500000 : 1200000 + ((i * 137000) % 2800000);
   const pct = f ? f[2] : PCTS[i % 4];
