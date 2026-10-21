@@ -8,7 +8,10 @@ import {
   CalendarClock,
   BadgeDollarSign,
   Plus,
-  SlidersHorizontal,ChevronDown
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import {
   getContracts,
@@ -39,9 +42,12 @@ const STATUS_CLS = {
   مفعل: "text-green-600",
   منتهي: "text-red-500",
 };
+
 const selectCls =
   "appearance-none h-8 rounded-lg border border-line bg-white pr-3 pl-4 text-[12px] text-[#717171] outline-none cursor-pointer";
 const compact = (n) => `${(n / 1e6).toFixed(2)} EGP M`;
+
+const ITEMS_PER_PAGE = 5;
 
 export default function Contracts() {
   const navigate = useNavigate();
@@ -50,6 +56,13 @@ export default function Contracts() {
   const [tab, setTab] = useState("all");
   const [status, setStatus] = useState("all");
   const [owner, setOwner] = useState("all");
+  const [page, setPage] = useState(1);
+
+  // إعادة الصفحة إلى 1 عند تغيير الفلاتر أو البحث
+  const handleFilterChange = (setter) => (value) => {
+    setter(value);
+    setPage(1);
+  };
 
   const list = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -66,12 +79,19 @@ export default function Contracts() {
     );
   }, [all, q, tab, status, owner]);
 
+  // حساب الصفحات
+  const totalPages = Math.ceil(list.length / ITEMS_PER_PAGE) || 1;
+  const paginatedList = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return list.slice(start, start + ITEMS_PER_PAGE);
+  }, [list, page]);
+
   const quotes = all.filter((c) => c.kind === "عقد ");
   const open = quotes.filter((c) => c.status !== "مقبول");
   const count = (st) => all.filter((c) => c.status === st).length;
 
   return (
-    <div dir="rtl" className=" max-w-full">
+    <div dir="rtl" className="max-w-full">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-extrabold text-ink leading-tight">
@@ -85,10 +105,11 @@ export default function Contracts() {
           <Plus size={13} /> مستند جديد
         </Link>
       </div>
+
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <SearchBox
           value={q}
-          onChange={setQ}
+          onChange={handleFilterChange(setQ)}
           placeholder="ابحث برقم المستند أو العميل"
           className="flex-1 min-w-[220px]"
         />
@@ -98,7 +119,11 @@ export default function Contracts() {
             className="absolute right-3 text-[#171819] pointer-events-none z-10"
           />
 
-          <Select value={status} onChange={setStatus} className="!rounded-4xl text-[12px]">
+          <Select
+            value={status}
+            onChange={handleFilterChange(setStatus)}
+            className="!rounded-4xl text-[12px]"
+          >
             <option value="all">فلترة متقدمة </option>
             {[...QUOTE_STATUSES, ...CONTRACT_STATUSES].map((s) => (
               <option key={s}>{s}</option>
@@ -108,7 +133,7 @@ export default function Contracts() {
         <div className="relative">
           <select
             value={owner}
-            onChange={(e) => setOwner(e.target.value)}
+            onChange={(e) => handleFilterChange(setOwner)(e.target.value)}
             className={selectCls}
           >
             <option value="all">كل المالكين</option>
@@ -187,7 +212,11 @@ export default function Contracts() {
           ["quote", `عروض الأسعار ${quotes.length}`],
           ["contract", `العقود ${all.length - quotes.length}`],
         ].map(([k, label]) => (
-          <Chip key={k} active={tab === k} onClick={() => setTab(k)}>
+          <Chip
+            key={k}
+            active={tab === k}
+            onClick={() => handleFilterChange(setTab)(k)}
+          >
             {label}
           </Chip>
         ))}
@@ -218,11 +247,11 @@ export default function Contracts() {
             </tr>
           </thead>
           <tbody>
-            {list.map((c) => (
+            {paginatedList.map((c) => (
               <tr
                 key={c.id}
                 onClick={() => navigate(`/contracts/${c.id}`)}
-                className="border-t border-line cursor-pointer bg-[#FAFAFA] hover:bg-[#F7F7F7]  "
+                className="border-t border-line cursor-pointer bg-[#FAFAFA] hover:bg-[#F7F7F7]"
               >
                 <td className={`${td} text-neutral-400`}>{c.id}</td>
                 <td className={td}>
@@ -255,7 +284,7 @@ export default function Contracts() {
                 </td>
               </tr>
             ))}
-            {!list.length && (
+            {!paginatedList.length && (
               <tr>
                 <td
                   colSpan={9}
@@ -267,6 +296,57 @@ export default function Contracts() {
             )}
           </tbody>
         </table>
+
+        {/* عناصر التنقل بين الصفحات (Pagination) */}
+
+        {/* Pagination */}
+        {list.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-white px-4 py-3">
+            <span className="text-[11px] text-neutral-500">
+              عرض{" "}
+              <span className="font-semibold text-ink">
+                {(page - 1) * ITEMS_PER_PAGE + 1}-
+                {Math.min(page * ITEMS_PER_PAGE, list.length)}
+              </span>{" "}
+              من {list.length} نتيجة
+            </span>
+
+            <div className="flex items-center gap-1.5" dir="ltr">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={15} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  aria-current={page === p ? "page" : undefined}
+                  className={`flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-semibold transition ${
+                    page === p
+                      ? "bg-ink text-white shadow-sm"
+                      : "bg-white text-neutral-500 hover:bg-neutral-100"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label="Next page"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
