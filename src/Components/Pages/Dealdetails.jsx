@@ -38,7 +38,7 @@ function Field({ label, value }) {
       <div className="text-[9.5px] text-neutral-400">{label}</div>
       <div
         className="mt-1 text-[11.5px] font-bold text-ink break-words"
-        dir="auto"
+        dir="rtl"
       >
         {value}
       </div>
