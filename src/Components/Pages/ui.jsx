@@ -1,4 +1,5 @@
-import { Search, ChevronDown, SlidersHorizontal , } from "lucide-react";
+import React from "react";
+import { Search, ChevronDown, SlidersHorizontal ,ChevronLeft,ChevronRight } from "lucide-react";
 export const egp = (n, digits = 0) =>
   `${Number(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })} EGP`;
 
@@ -107,27 +108,60 @@ function pageList(page, pages) {
   return [...set].filter((p) => p >= 1 && p <= pages).sort((a, b) => a - b);
 }
 
+
+
 export function PagerBar({ page, pages, onPage, info }) {
+  const pageNumbers = [
+    ...new Set(
+      [1, page - 1, page, page + 1, pages].filter((p) => p >= 1 && p <= pages),
+    ),
+  ].sort((a, b) => a - b);
+
   return (
-    <div className="flex items-center justify-between gap-2 px-1 pt-3 text-[10.5px] text-neutral-500">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-white px-4 py-3 text-[11px] text-neutral-500">
       <span>{info}</span>
-      <div className="flex items-center gap-1" dir="ltr">
-        {pageList(page, pages).map((p, i, arr) => (
-          <span key={p} className="flex items-center gap-1">
-            {i > 0 && p - arr[i - 1] > 1 && <span>…</span>}
+
+      <div className="flex items-center gap-1.5" dir="ltr">
+        {/* Previous */}
+        <button
+          disabled={page === 1}
+          onClick={() => onPage(Math.max(page - 1, 1))}
+          aria-label="Previous page"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          <ChevronLeft size={15} />
+        </button>
+
+        {/* Page Numbers */}
+        {pageNumbers.map((p, i) => (
+          <React.Fragment key={p}>
+            {i > 0 && p - pageNumbers[i - 1] > 1 && (
+              <span className="px-0.5 text-neutral-400">...</span>
+            )}
+
             <button
               onClick={() => onPage(p)}
-              aria-current={p === page}
-              className={`w-6 h-6 rounded-full text-[10.5px] ${
-                p === page
-                  ? "bg-ink text-white"
-                  : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+              aria-current={page === p ? "page" : undefined}
+              className={`flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-semibold transition ${
+                page === p
+                  ? "bg-ink text-white shadow-sm"
+                  : "bg-white text-neutral-500 hover:bg-neutral-100"
               }`}
             >
               {p}
             </button>
-          </span>
+          </React.Fragment>
         ))}
+
+        {/* Next */}
+        <button
+          disabled={page === pages}
+          onClick={() => onPage(Math.min(page + 1, pages))}
+          aria-label="Next page"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          <ChevronRight size={15} />
+        </button>
       </div>
     </div>
   );
