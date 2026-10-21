@@ -11,51 +11,129 @@ const ST_CLS = {
   ملغاة: "text-red-500 font-bold",
 };
 
+
 function DetailsModal({ c, onClose }) {
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
+
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   const Row = ({ label, value, tint }) => (
-    <div className={`flex items-center justify-between rounded-md px-2 py-1.5 text-[11px] ${tint || ""}`}>
-      <span className="text-neutral-500">{label}</span>
-      <b dir="ltr" className="text-ink">{value}</b>
+    <div
+      className={`flex min-w-0 items-center justify-between gap-3 rounded-xl px-3 py-2 text-[11px] sm:text-xs ${
+        tint || ""
+      }`}
+    >
+      <span className="shrink-0 text-neutral-500">{label}</span>
+      <b dir="rtl" className="min-w-0 break-words text-left font-medium text-ink">
+        {value}
+      </b>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" onClick={onClose} role="dialog" aria-modal="true">
-      <div dir="rtl" className="w-full max-w-[340px] bg-white rounded-xl p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-[14px] font-extrabold text-ink">تفاصيل العمولة</h2>
-          <button onClick={onClose} aria-label="إغلاق" className="text-neutral-400 hover:text-ink">
-            <X size={16} />
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-3 sm:p-5"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        dir="rtl"
+        className="w-full max-w-[560px]  bg-white px-5 py-6 shadow-xl sm:px-9 sm:py-8 rounded-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 ">
+          <h2 className="text-base font-extrabold text-ink sm:text-xl">
+            تفاصيل العمولة
+          </h2>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="إغلاق"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-700 transition hover:bg-neutral-50"
+          >
+            <X size={17} />
           </button>
         </div>
 
-        <div className="mt-4 rounded-lg bg-neutral-50 border border-line p-3">
-          <div className="flex items-center justify-between">
-            <b className="text-[11.5px] text-ink">{c.id}</b>
-            <span className={`text-[10px] ${ST_CLS[c.status]}`}>{c.status}</span>
-          </div>
-          <div className="mt-1 text-[11px] text-neutral-500">
-            {c.customer} — {c.beneficiary} ({c.role})
+        {/* Contract information */}
+        <div className="mt-5 rounded-lg bg-[#F8F9FA] border border-[#E5E7EB]  p-3 sm:p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 text-right">
+              <b dir="ltr" className="text-xs text-ink sm:text-sm">
+                {c.id}
+              </b>
+              <p className="mt-2 break-words text-xs leading-6 text-neutral-500 sm:text-sm">
+                {c.customer} — {c.beneficiary}
+                {c.role ? ` (${c.role})` : ""}
+              </p>
+            </div>
+            <span
+              className={`shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-[10px] ${
+                ST_CLS[c.status]
+              }`}
+            >
+              {c.status}
+            </span>
           </div>
         </div>
 
-        <div className="mt-3 space-y-1">
-          <Row label="قيمة الصفقة" value={egp(c.dealValue)} />
-          <Row label="نسبة العمولة" value={`${c.pct}%`} />
-          <Row label="مبلغ العمولة" value={egp(c.amount)} tint="bg-green-50" />
-          <Row label="تاريخ الدفع" value={c.paidAt || "—"} />
-          <Row label="تاريخ الاستحقاق" value={c.due} />
+        {/* Amounts and dates */}
+        <div className="mt-5 border-y border-dotted border-neutral-300 py-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="min-w-0">
+              <p className="text-[11px] text-neutral-500 sm:text-xs">
+                قيمة الصفقة
+              </p>
+              <p className="mt-2 break-words text-xs text-ink sm:text-sm">
+                {egp(c.dealValue)}
+              </p>
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-[11px] text-neutral-500 sm:text-xs">
+                معدل العمولة
+              </p>
+              <p className="mt-2 text-xs text-ink sm:text-sm">{c.pct}%</p>
+            </div>
+
+            <div className="col-span-2">
+              <Row
+                label="مبلغ العمولة"
+                value={egp(c.amount)}
+                tint="bg-green-50/70 text-green-700"
+              />
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-[11px] text-neutral-500 sm:text-xs">
+                تاريخ الدفع
+              </p>
+              <p className="mt-2 break-words text-xs text-ink sm:text-sm">
+                {c.paidAt || "—"}
+              </p>
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-[11px] text-neutral-500 sm:text-xs">
+                تاريخ الاستحقاق
+              </p>
+              <p className="mt-2 break-words text-xs text-ink sm:text-sm">
+                {c.due || "—"}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 export default function Commissions() {
   const [all] = useState(getCommissions);
