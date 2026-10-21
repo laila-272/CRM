@@ -1,4 +1,4 @@
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, SlidersHorizontal , } from "lucide-react";
 export const egp = (n, digits = 0) =>
   `${Number(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })} EGP`;
 
@@ -8,7 +8,8 @@ export function PageHeader({ title, subtitle, children }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h1 className="text-[26px] font-extrabold text-ink leading-tight">
+        <h1 className="text-[26px] font-semibold text-ink leading-tight">
+          {" "}
           {title}
         </h1>
         <p className="mt-1 text-[11px] text-neutral-500">{subtitle}</p>
@@ -42,13 +43,13 @@ export function SearchBox({ value, onChange, placeholder, className = "" }) {
 
 
 
-export function Select({ value, onChange, children }) {
+export function Select({ value, onChange, children, className = "" }) {
   return (
     <div className="relative">
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full appearance-none rounded-lg border border-line bg-white pr-7 pl-3 text-[11px] font-semibold outline-none cursor-pointer"
+        className={`h-9 w-full appearance-none rounded-lg border border-line bg-white pr-7 pl-3 text-[11px] font-semibold outline-none cursor-pointer ${className}`}
       >
         {children}
       </select>
@@ -69,7 +70,7 @@ export function Chip({ active, onClick, children }) {
       className={`h-7 rounded-full px-3 text-[10.5px] font-semibold border transition-colors ${
         active
           ? "bg-ink text-white border-ink"
-          : "bg-white text-neutral-500 border-line hover:text-ink"
+          : "bg-[#F1F2F4] text-neutral-500 border-line hover:text-ink"
       }`}
     >
       {children}
@@ -81,15 +82,15 @@ export function StatCard({ icon: Icon, tag, value, label }) {
   return (
     <div className={`${card} p-4`}>
       <div className="flex items-center justify-between">
-        <Icon size={16} className="text-neutral-500" />
+        <Icon size={26} strokeWidth={1.25} className="text-neutral-500" />
         {tag && (
-          <span className="text-[9.5px] bg-neutral-100 text-neutral-500 rounded-full px-2 py-0.5">
+          <span className="text-[10px] bg-neutral-100 text-neutral-500 rounded-full px-2 py-0.5">
             {tag}
           </span>
         )}
       </div>
       <div
-        className="mt-3 text-[26px] leading-none font-extrabold text-ink"
+        className="mt-3 text-[26px] leading-none font-semibold text-ink"
         dir="ltr"
         style={{ textAlign: "right" }}
       >

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronDown, MessageCircle,Pencil } from "lucide-react";
+import { ChevronDown, MessageCircle, Pencil } from "lucide-react";
 import {
   getDeal,
   updateDeal,
@@ -153,7 +153,7 @@ export default function DealDetails() {
       </Link>
       {/* Header */}
       <div className="mt-2 flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-3">
-        <div className="flex flex-wrap gap-2 items-center lg:order-2">
+        <div className="flex flex-wrap gap-2 items-center lg:order-2 ">
           <a
             // href={wa}
             target="_blank"

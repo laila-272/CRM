@@ -77,14 +77,14 @@ export default function ContractDetails() {
     <div dir="rtl" className=" max-w-full">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-[26px] font-extrabold text-ink leading-tight">
+          <h1 className="text-[26px] font-semibold text-ink leading-tight">
             {c.kind} {c.id}
           </h1>
           <p className="mt-1 text-[11px] text-neutral-500">
             {c.customer} - {c.company} — المسؤول {c.owner}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center mt-2">
           <a
             // href={wa}
             target="_blank"
@@ -109,8 +109,8 @@ export default function ContractDetails() {
               </div>
             )} */}
           </div>
-          <button className="btn" onClick={() => setEditing(true)}>
-            <Pencil size={12} /> تعديل
+          <button className="btn !font-bold" onClick={() => setEditing(true)}>
+            تعديل
           </button>
           {/* <button
             className="btn text-red-600"
@@ -219,7 +219,7 @@ export default function ContractDetails() {
             <ul className="space-y-5">
               {c.signers.map((s) => (
                 <li key={s.name} className="flex items-center gap-2.5">
-                  <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 grid place-items-center text-[10.5px] font-bold">
+                  <span className="w-7 h-7 rounded-full bg-blue-50 text-black-600 grid place-items-center text-[10.5px] font-bold">
                     {s.name[0]}
                   </span>
                   <div className="flex-1 min-w-0 leading-tight">
@@ -245,29 +245,39 @@ export default function ContractDetails() {
               {c.attachments.map((a) => (
                 <li
                   key={a.name}
-                  className="flex items-center gap-2.5 border-b border-line pb-3 last:border-b-0"
+                  className="flex items-center justify-between border-b border-line
+"
                 >
-                  <span className="w-7 h-7 rounded-lg bg-red-50 text-red-500 grid place-items-center">
-                    <FileText size={13} />
-                  </span>
-
-                  <div className="min-w-0 leading-tight">
-                    <div
-                      className="text-[10.5px] font-semibold text-ink truncate"
-                      dir="auto"
-                    >
-                      {a.name}
-                    </div>
-                    <div className="text-[9.5px] text-neutral-400">
-                      {a.size} · {a.date}
+                  <div className="flex items-center gap-2.5  pb-3.5 last:border-b-0">
+                    {" "}
+                    <span className="w-7 h-7 rounded-lg bg-[#F1F2F4] text-black-500 grid place-items-center text-xs">
+                      PDF
+                    </span>
+                    <div className="min-w-0 leading-tight">
+                      <div
+                        className="text-[10.5px] font-semibold text-ink truncate"
+                        dir="auto"
+                      >
+                        {a.name}
+                      </div>
+                      <div className="text-[9.5px] text-neutral-400">
+                        {a.size} · {a.date}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => alert("الملف غير متاح للتحميل حاليًا")}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-md border border-line px-2 py-1.5 text-[10px] font-semibold text-ink hover:bg-neutral-50 transition"
+                  >
+                    تحميل
+                  </button>
                 </li>
               ))}
             </ul>
             <button
               type="button"
-              className="mt-3 w-full rounded-lg border border-line bg-white py-2.5 text-[11px] font-semibold text-ink hover:bg-neutral-50 transition"
+              className="mt-3 w-full rounded-lg border border-dashed border-[#E4E7DE] bg-white py-2.5 text-[11px] font-semibold text-ink hover:bg-neutral-50 transition"
             >
               + رفع ملف
             </button>

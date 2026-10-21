@@ -56,7 +56,7 @@ const rows = Array.from({ length: 18 }, (_, i) => {
   const [customer, company] = PEOPLE[i % PEOPLE.length];
   const base = {
     id: isContract ? `CT-${pad(31 - j)}` : `QT-${pad(162 - k)}`,
-    kind: isContract ? "عقد" : "عرض سعر",
+    kind: isContract ? "عقد" : "عقد ",
     customer,
     company,
     deal: SUBJECTS[i % SUBJECTS.length],

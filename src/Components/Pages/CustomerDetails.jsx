@@ -109,7 +109,7 @@ export default function CustomerDetails() {
             عميل محتمل · أُضيف في {c.createdAt} · آخر تواصل 10/7
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center ">
           <a
             href={wa}
             target="_blank"
