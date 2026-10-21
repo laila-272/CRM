@@ -252,50 +252,42 @@ export default function Brokers() {
         </form>
 
         {/* Table */}
-        <div className={`${card} p-3 min-w-0`}>
+        <div className={`${card} p-3 min-w-0 flex flex-col justify-between`}>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px]">
-              <thead className="bg-[#F7F8FA] ">
+            {/* إضافة table-fixed تمنع تغيير عرض الأعمدة بناءً على طول النص */}
+            <table className="w-full min-w-[560px] table-fixed">
+              <thead className="bg-[#F7F8FA]">
                 <tr>
-                  {["الاسم", "البريد الإلكتروني", "الهاتف", "المصدر", ""].map(
-                    (h, i) => (
-                      <th key={i} className={th}>
-                        {h}
-                      </th>
-                    ),
-                  )}
+                  {/* تحديد عرض ثابت نسبي لكل عمود */}
+                  <th className={`${th} w-[25%]`}>الاسم</th>
+                  <th className={`${th} w-[30%]`}>البريد الإلكتروني</th>
+                  <th className={`${th} w-[20%]`}>الهاتف</th>
+                  <th className={`${th} w-[15%]`}>المصدر</th>
+                  <th className={`${th} w-[10%]`}></th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200 block sm:table-row-group min-h-[420px]">
                 {rows.map((b) => (
-                  <tr
-                    key={b.id}
-                    className={`border-line ${
-                      rows[0]?.id === b.id ? "" : "border-t"
-                    }`}
-                  >
-                    {" "}
-                    <td className={`${td} font-semibold text-[14px] `}>
+                  <tr key={b.id} className="border-line">
+                    <td className={`${td} font-semibold text-[14px] truncate`}>
                       {b.name}
-                      {/* <span className="mr-2 text-[9px] font-normal text-neutral-400">
-                        {b.type}
-                      </span> */}
                     </td>
                     <td
-                      className={`${td} text-neutral-500`}
+                      className={`${td} text-neutral-500 text-right truncate`}
                       dir="ltr"
-                      style={{ textAlign: "right" }}
                     >
                       {b.email}
                     </td>
-                    <td className={td} dir="ltr" style={{ textAlign: "right" }}>
+                    <td className={`${td} text-right truncate`} dir="ltr">
                       {b.phone}
                     </td>
-                    <td className={`${td} text-neutral-500`}>{b.source}</td>
-                    <td className={td}>
+                    <td className={`${td} text-neutral-500 truncate`}>
+                      {b.source}
+                    </td>
+                    <td className={`${td} text-center`}>
                       <button
                         onClick={() => remove(b)}
-                        className="h-6 rounded-full border border-red-300 text-red-500 px-3 text-[10px] hover:bg-red-50"
+                        className="h-6 rounded-full border border-red-300 text-red-500 px-3 text-[10px] hover:bg-red-50 transition-colors"
                       >
                         حذف
                       </button>
@@ -315,12 +307,15 @@ export default function Brokers() {
               </tbody>
             </table>
           </div>
-          <PagerBar
-            page={cur}
-            pages={pages}
-            onPage={setPage}
-            info={`عرض ${from}–${from ? from + rows.length - 1 : 0} من ${filtered.length} نتيجة`}
-          />
+
+          <div className="mt-auto pt-3">
+            <PagerBar
+              page={cur}
+              pages={pages}
+              onPage={setPage}
+              info={`عرض ${from}–${from ? from + rows.length - 1 : 0} من ${filtered.length} نتيجة`}
+            />
+          </div>
         </div>
       </div>
     </div>
