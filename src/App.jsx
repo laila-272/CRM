@@ -14,6 +14,7 @@ import Tasks from "./Components/Pages/Tasks.jsx";
 import Reports from "./Components/Pages/Reports.jsx";
 import Calendar from "./Components/Pages/Calender.jsx";
 import FormBuilder from "./Components/Pages/Formbuilder.jsx";
+import Settings from "./Components/Pages/Settings.jsx";
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -72,6 +73,10 @@ const router = createBrowserRouter([
       {
         path: "forms",
         element: <FormBuilder />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
       },
     ],
   },

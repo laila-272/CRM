@@ -58,7 +58,7 @@ const groups = [
       { label: "منشئ النماذج", to: "/forms", icon: FileText },
       { label: "التقارير", to: "/reports", icon: FileText },
 
-      { label: "اعدادات ال CRM", to: "#", icon: FileText },
+      { label: "اعدادات ال CRM", to: "/settings", icon: FileText },
     ],
   },
   { title: "المحاسبة", icon: Wallet, items: [{ label: "الفواتير", to: "#" }] },
