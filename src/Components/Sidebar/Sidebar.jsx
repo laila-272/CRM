@@ -53,10 +53,10 @@ const groups = [
         to: "/brokers",
         icon: Handshake,
       },
-      { label: "المتابعات و المهام", to: "#", icon: CalendarCheck },
-      { label: "الاجتماعات والتقويم", to: "#", icon: FileText },
-      { label: "منشئ النماذج", to: "#", icon: FileText },
-      { label: "التقارير", to: "#", icon: FileText },
+      { label: "المتابعات و المهام", to: "/tasks", icon: CalendarCheck },
+      { label: "الاجتماعات والتقويم", to: "/calender", icon: FileText },
+      { label: "منشئ النماذج", to: "/forms", icon: FileText },
+      { label: "التقارير", to: "/reports", icon: FileText },
 
       { label: "اعدادات ال CRM", to: "#", icon: FileText },
     ],
@@ -111,8 +111,8 @@ function Group({ g }) {
   return (
     <details open={g.open} className="group">
       <summary className="list-none [&::-webkit-details-marker]:hidden flex items-center gap-2 px-2 h-8 rounded-lg cursor-pointer bg-white/[0.05] hover:bg-white/[0.08] text-[11.5px] font-semibold text-neutral-200 transition-colors">
-        <span className="w-5 h-5 shrink-0 rounded-md bg-orange-500/15 grid place-items-center">
-          <Icon size={12} className="text-orange-500" />
+        <span className="w-5 h-5 shrink-0 rounded-md  grid place-items-center">
+          <Icon size={12} className="text-[#FF7E52]" />
         </span>
         <span className="flex-1 truncate">{g.title}</span>
         <ChevronDown
@@ -138,7 +138,7 @@ function Group({ g }) {
               className={({ isActive }) =>
                 `flex items-center gap-2 px-2 py-1 rounded-md text-[11px] transition ${
                   isActive
-                    ? "bg-orange-500/15 text-orange-400 font-bold"
+                    ? "bg-[#D9D9D918] text-[#FF7E52] font-bold"
                     : "text-neutral-400 hover:text-white hover:bg-white/5"
                 }`
               }
@@ -186,7 +186,7 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
           {logoSrc ? (
             <img src={logoSrc} alt="" className="h-7 w-auto" />
           ) : (
-            <span className="w-7 h-7 rounded-lg bg-orange-500 grid place-items-center">
+            <span className="w-7 h-7 rounded-lg bg-[#FF7E52] grid place-items-center">
               <Building2 size={15} />
             </span>
           )}

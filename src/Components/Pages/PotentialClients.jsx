@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  
+  PagerBar,
+ 
+} from "./ui.jsx";
+import {
   Search,
   Plus,
   Download,
@@ -282,41 +287,23 @@ export default function PotentialClients() {
             </tbody>
           </table>
         </div>
+        
+        <div className="">
+          <PagerBar
+            page={cur}
+            pages={pages}
+            onPage={setPage}
+            info={`عرض ${
+              filtered.length ? (cur - 1) * PAGE_SIZE + 1 : 0
+            }–${Math.min(cur * PAGE_SIZE, filtered.length)} من ${
+              filtered.length
+            } نتيجة`}
+          />
+        </div>
+        
       </div>
 
-      <div className="flex items-center justify-between text-[12px] text-neutral-500">
-        <span>
-          عرض {filtered.length ? (cur - 1) * PAGE_SIZE + 1 : 0}–
-          {Math.min(cur * PAGE_SIZE, filtered.length)} من {filtered.length}
-        </span>
-        <div className="flex items-center gap-1" dir="rtl">
-          <button
-            className="w-7 h-7 grid place-items-center rounded-full hover:bg-neutral-200 disabled:opacity-30"
-            disabled={cur === 1}
-            onClick={() => setPage(cur - 1)}
-            aria-label="السابق"
-          >
-            <ChevronRight size={14} />
-          </button>
-          {nums.map((n) => (
-            <button
-              key={n}
-              onClick={() => setPage(n)}
-              className={`w-7 h-7 rounded-full text-[12px] ${n === cur ? "bg-ink text-white font-bold" : "hover:bg-neutral-200"}`}
-            >
-              {n}
-            </button>
-          ))}
-          <button
-            className="w-7 h-7 grid place-items-center rounded-full hover:bg-neutral-200 disabled:opacity-30"
-            disabled={cur === pages}
-            onClick={() => setPage(cur + 1)}
-            aria-label="التالي"
-          >
-            <ChevronLeft size={14} />
-          </button>
-        </div>
-      </div>
+    
 
       <CustomerAnalytics customers={filtered} />
 

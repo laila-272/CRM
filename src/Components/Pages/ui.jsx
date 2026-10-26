@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, ChevronDown, SlidersHorizontal ,ChevronLeft,ChevronRight } from "lucide-react";
+import { Search, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 export const egp = (n, digits = 0) =>
   `${Number(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })} EGP`;
 
@@ -42,8 +42,6 @@ export function SearchBox({ value, onChange, placeholder, className = "" }) {
   );
 }
 
-
-
 export function Select({ value, onChange, children, className = "" }) {
   return (
     <div className="relative">
@@ -62,7 +60,6 @@ export function Select({ value, onChange, children, className = "" }) {
     </div>
   );
 }
-
 
 export function Chip({ active, onClick, children }) {
   return (
@@ -101,13 +98,6 @@ export function StatCard({ icon: Icon, tag, value, label }) {
     </div>
   );
 }
-
-function pageList(page, pages) {
-  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
-  const set = new Set([1, pages, page - 1, page, page + 1]);
-  return [...set].filter((p) => p >= 1 && p <= pages).sort((a, b) => a - b);
-}
-
 
 
 export function PagerBar({ page, pages, onPage, info }) {

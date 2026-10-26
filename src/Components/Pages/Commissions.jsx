@@ -304,14 +304,13 @@ export default function Commissions() {
             )}
           </tbody>
         </table>
+        <PagerBar
+          page={cur}
+          pages={pages}
+          onPage={setPage}
+          info={`إظهار ${from}–${from ? from + rows.length - 1 : 0} من ${list.length} عمولة`}
+        />
       </div>
-
-      <PagerBar
-        page={cur}
-        pages={pages}
-        onPage={setPage}
-        info={`إظهار ${from}–${from ? from + rows.length - 1 : 0} من ${list.length} عمولة`}
-      />
 
       {/* Monthly chart (pure CSS) */}
       <section className={`${card} mt-4 p-4 py-7`}>

@@ -26,6 +26,7 @@ import {
   Select,
   Chip,
   card,
+  PagerBar,
   btnLight,
   downloadCsv,
   egp,
@@ -296,57 +297,22 @@ export default function Contracts() {
             )}
           </tbody>
         </table>
-
-        {/* عناصر التنقل بين الصفحات (Pagination) */}
-
-        {/* Pagination */}
+         
+        
         {list.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-white px-4 py-3">
-            <span className="text-[11px] text-neutral-500">
-              عرض{" "}
-              <span className="font-semibold text-ink">
-                {(page - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(page * ITEMS_PER_PAGE, list.length)}
-              </span>{" "}
-              من {list.length} نتيجة
-            </span>
-
-            <div className="flex items-center gap-1.5" dir="ltr">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
-                aria-label="Previous page"
-              >
-                <ChevronLeft size={15} />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  aria-current={page === p ? "page" : undefined}
-                  className={`flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-semibold transition ${
-                    page === p
-                      ? "bg-ink text-white shadow-sm"
-                      : "bg-white text-neutral-500 hover:bg-neutral-100"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-30"
-                aria-label="Next page"
-              >
-                <ChevronRight size={15} />
-              </button>
-            </div>
+          <div >
+            <PagerBar
+              page={page}
+              pages={totalPages}
+              onPage={setPage}
+              info={`عرض ${(page - 1) * ITEMS_PER_PAGE + 1}–${Math.min(
+                page * ITEMS_PER_PAGE,
+                list.length,
+              )} من ${list.length} نتيجة`}
+            />
           </div>
         )}
+       
       </div>
     </div>
   );

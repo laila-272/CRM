@@ -308,7 +308,7 @@ export default function Brokers() {
             </table>
           </div>
 
-          <div className="mt-auto pt-3">
+          <div >
             <PagerBar
               page={cur}
               pages={pages}
