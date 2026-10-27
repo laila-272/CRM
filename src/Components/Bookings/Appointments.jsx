@@ -13,7 +13,7 @@ import {
   toTime,
   useScheduling,
 } from "../../data/scheduling.js";
-import { addDays, todayIso } from "../../data/tasks.js";
+import { addDays, todayIso } from "../../data/Tasks.js";
 import { Toast, useToast } from "../CRMPages/TaskModal.jsx";
 import AppointmentModal from "./Appointmentmodal.jsx";
 import { Chip, PageHeader, Select, btnDark, card } from "../Shared/ui.jsx";

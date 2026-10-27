@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { todayIso, addDays, MONTHS } from "./tasks.js";
+import { todayIso, addDays, MONTHS } from "./Tasks.js";
 
 // Scheduling (appointments / reservations / resources). One source of truth shared by all scheduling pages.
 // Persisted in dedicated, versioned localStorage keys. Replace load/persist with API calls later.

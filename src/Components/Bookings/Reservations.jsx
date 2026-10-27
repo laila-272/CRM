@@ -19,7 +19,7 @@ import {
   useScheduling,
   weekStart,
 } from "../../data/scheduling.js";
-import { MONTHS, addDays, fmtDate, toIso, todayIso } from "../../data/tasks.js";
+import { MONTHS, addDays, fmtDate, toIso, todayIso } from "../../data/Tasks.js";
 import { Toast, useToast } from "../CRMPages/TaskModal.jsx";
 import AppointmentModal from "./Appointmentmodal.jsx";
 import {

@@ -11,7 +11,7 @@ import {
   occupancy,
   useScheduling,
 } from "../../data/scheduling.js";
-import { todayIso } from "../../data/tasks.js";
+import { todayIso } from "../../data/Tasks.js";
 import { Toast, useToast } from "../CRMPages/TaskModal.jsx";
 import AppointmentModal from "./Appointmentmodal.jsx";
 import ResourceModal from "./Resourcemodal.jsx";
