@@ -1,24 +1,12 @@
+import { ChevronDown, Plus, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  
-  PagerBar,
- 
-} from "./ui.jsx";
-import {
-  Search,
-  Plus,
-  Download,
-  SlidersHorizontal,
-  ChevronDown,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react";
 import { useCustomers } from "../../context/CustomersContext.jsx";
-import { STATUSES, SOURCES, PROJECTS } from "../../data/customers.js";
-import StatusBadge from "../Customers/StatusBadge.jsx";
-import CustomerFormModal from "../Customers/CustomerFormModal.jsx";
+import { PROJECTS, SOURCES, STATUSES } from "../../data/customers.js";
 import CustomerAnalytics from "../Customers/CustomerAnalytics.jsx";
+import CustomerFormModal from "../Customers/CustomerFormModal.jsx";
+import StatusBadge from "../Customers/StatusBadge.jsx";
+import { PagerBar } from "../Shared/ui.jsx";
 
 const PAGE_SIZE = 7;
 
@@ -287,7 +275,7 @@ export default function PotentialClients() {
             </tbody>
           </table>
         </div>
-        
+
         <div className="">
           <PagerBar
             page={cur}
@@ -300,10 +288,7 @@ export default function PotentialClients() {
             } نتيجة`}
           />
         </div>
-        
       </div>
-
-    
 
       <CustomerAnalytics customers={filtered} />
 

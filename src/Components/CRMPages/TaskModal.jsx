@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { btnDark, btnLight } from "./ui.jsx";
+import { useEffect, useState } from "react";
 import {
-  TYPES,
+  CUSTOMERS,
+  EMPLOYEES,
   PRIORITIES,
   REMINDERS,
-  EMPLOYEES,
-  CUSTOMERS,
   todayIso,
+  TYPES,
 } from "../../data/Tasks.js";
+import { btnDark, btnLight } from "../Shared/ui.jsx";
 
 export function useToast() {
   const [message, setMessage] = useState("");

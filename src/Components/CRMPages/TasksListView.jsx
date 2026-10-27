@@ -1,6 +1,6 @@
 import { Trash2 } from "lucide-react";
-import { card } from "./ui.jsx";
-import { statusOf, fmtDate, TYPE_CLS, STATUS_CLS } from "../../data/Tasks.js";
+import { fmtDate, STATUS_CLS, statusOf, TYPE_CLS } from "../../data/Tasks.js";
+import { card } from "../Shared/ui.jsx";
 
 function Badge({ cls = "", children }) {
   return (

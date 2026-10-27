@@ -1,7 +1,21 @@
+import { Briefcase, CircleDollarSign, Wallet, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Download, X, CircleDollarSign, Wallet, Briefcase } from "lucide-react";
-import { getCommissions, MONTHLY, COMMISSION_STATUSES } from "../../data/commissions.js";
-import { PageHeader, StatCard, SearchBox, Chip, PagerBar, card, btnDark, downloadCsv, egp, th, td } from "./ui.jsx";
+import {
+  COMMISSION_STATUSES,
+  getCommissions,
+  MONTHLY,
+} from "../../data/commissions.js";
+import {
+  card,
+  Chip,
+  egp,
+  PageHeader,
+  PagerBar,
+  SearchBox,
+  StatCard,
+  td,
+  th,
+} from "../Shared/ui.jsx";
 
 const PAGE_SIZE = 5;
 const ST_CLS = {
@@ -10,7 +24,6 @@ const ST_CLS = {
   معلقة: "text-neutral-600",
   ملغاة: "text-red-500 font-bold",
 };
-
 
 function DetailsModal({ c, onClose }) {
   useEffect(() => {
@@ -27,7 +40,10 @@ function DetailsModal({ c, onClose }) {
       }`}
     >
       <span className="shrink-0 text-neutral-500">{label}</span>
-      <b dir="rtl" className="min-w-0 break-words text-left font-medium text-ink">
+      <b
+        dir="rtl"
+        className="min-w-0 break-words text-left font-medium text-ink"
+      >
         {value}
       </b>
     </div>
@@ -134,7 +150,6 @@ function DetailsModal({ c, onClose }) {
   );
 }
 
-
 export default function Commissions() {
   const [all] = useState(getCommissions);
   const [q, setQ] = useState("");
@@ -147,7 +162,10 @@ export default function Commissions() {
     return all.filter(
       (c) =>
         (status === "all" || c.status === status) &&
-        (!s || [c.id, c.customer, c.beneficiary].some((v) => v.toLowerCase().includes(s))),
+        (!s ||
+          [c.id, c.customer, c.beneficiary].some((v) =>
+            v.toLowerCase().includes(s),
+          )),
     );
   }, [all, q, status]);
 
@@ -157,7 +175,9 @@ export default function Commissions() {
   const from = list.length ? (cur - 1) * PAGE_SIZE + 1 : 0;
 
   const total = list.reduce((a, c) => a + c.amount, 0);
-  const paid = list.filter((c) => c.status === "مدفوعة").reduce((a, c) => a + c.amount, 0);
+  const paid = list
+    .filter((c) => c.status === "مدفوعة")
+    .reduce((a, c) => a + c.amount, 0);
   const max = Math.max(...MONTHLY.map((m) => m.v));
   const setFilter = (fn) => (v) => {
     fn(v);

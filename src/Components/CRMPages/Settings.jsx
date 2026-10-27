@@ -1,21 +1,28 @@
-import { useRef, useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
+  GripVertical,
   Plus,
   Save,
-  GripVertical,
-  ArrowUp,
-  ArrowDown,
   Trash2,
 } from "lucide-react";
-import { PageHeader, Select, card, btnDark, btnLight, th, td } from "./ui.jsx";
-import { Toast, useToast } from "./TaskModal.jsx";
+import { useRef, useState } from "react";
 import {
   loadSettings,
+  OWNERS,
   saveSettings,
   STAGE_KINDS,
-  OWNERS,
-  
 } from "../../data/settings.js";
+import {
+  btnDark,
+  btnLight,
+  card,
+  PageHeader,
+  Select,
+  td,
+  th,
+} from "../Shared/ui.jsx";
+import { Toast, useToast } from "./TaskModal.jsx";
 
 const NAV = [
   ["overview", "نظرة عامة"],
@@ -567,8 +574,6 @@ function AssignmentSection({ d, up, error }) {
     </Section>
   );
 }
-
-
 
 /* ---------------- Page ---------------- */
 export default function CrmSettings() {

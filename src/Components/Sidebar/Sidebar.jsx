@@ -32,7 +32,7 @@ const groups = [
   {
     title: "إدارة علاقات العملاء (CRM)",
     icon: Users,
-    open: true,
+    open: false,
     items: [
       { label: "العملاء المحتملون", to: "/potential-clients", icon: Users },
       // {
@@ -61,13 +61,54 @@ const groups = [
       { label: "اعدادات ال CRM", to: "/settings", icon: FileText },
     ],
   },
-  { title: "المحاسبة", icon: Wallet, items: [{ label: "الفواتير", to: "#" }] },
-  { title: "المبيعات", icon: Wallet, items: [{ label: "الفواتير", to: "#" }] },
   {
     title: "المواعيد والحجوزات",
     icon: BarChart3,
-    items: [{ label: "تقارير المبيعات", to: "#" }],
+    items: [
+      { label: "الحجوزات", to: "/reservations" },
+      { label: "المواعيد", to: "/appointments" },
+      { label: "الموارد", to: "/resources" },
+      // { label: "التقارير", to: "#" },
+      { label: "الاعدادات", to: "/scheduling-settings" },
+    ],
   },
+  {
+    title: "المخزون",
+    icon: Users,
+    open: false,
+    items: [
+      { label: "المنتجات", to: "/products", icon: Handshake },
+      { label: "حركة المخزون", to: "#", icon: Handshake },
+      { label: "تنبيهات المخزون", to: "#", icon: Handshake },
+      { label: "الموردون والمشتريات", to: "#", icon: Handshake },
+      { label: "الجرد", to: "#", icon: Handshake },
+      { label: "المخازن", to: "#", icon: Handshake },
+    ],
+  },
+  {
+    title: "المحاسبة",
+    icon: Wallet,
+    items: [
+      { label: "الحسابات", to: "#" },
+      { label: "الفواتير والتحصيل", to: "#" },
+      { label: "المشتريات و المصروفات", to: "#" },
+      { label: "البنوك و الحسابات", to: "#" },
+      { label: "القيود المحاسبيه", to: "#" },
+      { label: " التقارير المالية", to: "#" },
+      { label: "اعدادات المحاسبه", to: "#" },
+    ],
+  },
+  {
+    title: "المبيعات",
+    icon: Wallet,
+    items: [
+      { label: "الطلبات", to: "#" },
+      { label: "أوامر البيع", to: "#" },
+      { label: "تقارير المبيعات", to: "#" },
+      { label: "إعدادات المبيعات", to: "#" },
+    ],
+  },
+
   {
     title: "الوحدات والمشاريع",
     icon: Megaphone,

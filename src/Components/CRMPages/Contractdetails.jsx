@@ -1,21 +1,15 @@
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import {
-  FileText,
-  MessageCircle,
-  Printer,
-  ChevronDown,
-  Pencil,
-} from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { Link, useParams } from "react-router-dom";
 
 import {
-  getContract,
-  setContractStatus,
-  QUOTE_STATUSES,
   CONTRACT_STATUSES,
+  getContract,
+  QUOTE_STATUSES,
+  setContractStatus,
 } from "../../data/contracts.js";
-import { card, egp, th, td, btnDark } from "./ui.jsx";
+import { btnDark, card, egp, td, th } from "../Shared/ui.jsx";
 
 const PAY_CLS = {
   مدفوعة: "bg-green-50 text-green-600",

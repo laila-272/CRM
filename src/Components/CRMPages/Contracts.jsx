@@ -1,38 +1,32 @@
+import {
+  BadgeDollarSign,
+  CalendarClock,
+  ChevronDown,
+  Mail,
+  MoreHorizontal,
+  PenLine,
+  Plus,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Download,
-  MoreHorizontal,
-  Mail,
-  PenLine,
-  CalendarClock,
-  BadgeDollarSign,
-  Plus,
-  SlidersHorizontal,
-  ChevronDown,
-  ChevronRight,
-  ChevronLeft
-} from "lucide-react";
-import {
+  CONTRACT_STATUSES,
   getContracts,
   OWNERS,
   QUOTE_STATUSES,
-  CONTRACT_STATUSES,
 } from "../../data/contracts.js";
 import {
-  PageHeader,
-  StatCard,
-  SearchBox,
-  Select,
-  Chip,
   card,
-  PagerBar,
-  btnLight,
+  Chip,
   downloadCsv,
   egp,
-  th,
+  PagerBar,
+  SearchBox,
+  Select,
+  StatCard,
   td,
-} from "./ui.jsx";
+} from "../Shared/ui.jsx";
 
 const STATUS_CLS = {
   مرسل: "text-neutral-500",
@@ -297,10 +291,9 @@ export default function Contracts() {
             )}
           </tbody>
         </table>
-         
-        
+
         {list.length > 0 && (
-          <div >
+          <div>
             <PagerBar
               page={page}
               pages={totalPages}
@@ -312,7 +305,6 @@ export default function Contracts() {
             />
           </div>
         )}
-       
       </div>
     </div>
   );

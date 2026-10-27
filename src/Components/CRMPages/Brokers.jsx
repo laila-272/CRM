@@ -1,19 +1,18 @@
-import { useMemo, useState } from "react";
 import { Download } from "lucide-react";
-import { getBrokers, addBroker, removeBroker } from "../../data/brokers.js";
+import { useMemo, useState } from "react";
+import { addBroker, getBrokers, removeBroker } from "../../data/brokers.js";
 import {
+  Chip,
   PageHeader,
+  PagerBar,
   SearchBox,
   Select,
-  Chip,
-  PagerBar,
-  card,
-  btnDark,
   btnLight,
+  card,
   downloadCsv,
-  th,
   td,
-} from "./ui.jsx";
+  th,
+} from "../Shared/ui.jsx";
 
 const PAGE_SIZE = 7;
 const EMPTY = { type: "وسيط", name: "", phone: "", email: "" };
@@ -308,7 +307,7 @@ export default function Brokers() {
             </table>
           </div>
 
-          <div >
+          <div>
             <PagerBar
               page={cur}
               pages={pages}

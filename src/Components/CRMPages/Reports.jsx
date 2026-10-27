@@ -1,28 +1,25 @@
 import {
+  Calculator,
   Download,
-  Wallet,
-  Handshake,
   Percent,
   TrendingUp,
   UsersRound,
-  Calculator,
 } from "lucide-react";
+import {
+  LEAD_SOURCES,
+  MONTHLY,
+  OPEN_PIPELINE,
+  TEAM,
+} from "../../data/Reports.js";
 import {
   PageHeader,
   StatCard,
-  btnDark,
   card,
-  egp,
-  th,
-  td,
   downloadCsv,
-} from "./ui.jsx";
-import {
-  MONTHLY,
-  TEAM,
-  LEAD_SOURCES,
-  OPEN_PIPELINE,
-} from "../../data/Reports.js";
+  egp,
+  td,
+  th,
+} from "../Shared/ui.jsx";
 
 // Charts are plain SVG/CSS so no chart dependency is required. Swap for recharts later if you install it.
 

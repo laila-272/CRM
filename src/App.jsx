@@ -1,20 +1,32 @@
-
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import Layout from "./Components/Layout/Layout.jsx";
-import PotentialClients from "./Components/Pages/PotentialClients.jsx";
-import CustomerDetails from "./Components/Pages/CustomerDetails.jsx";
+import PotentialClients from "./Components/CRMPages/PotentialClients.jsx";
+import CustomerDetails from "./Components/CRMPages/CustomerDetails.jsx";
 import { CustomersProvider } from "./context/CustomersContext.jsx";
-import Deals from "./Components/Pages/Deals.jsx";
-import DealDetails from "./Components/Pages/Dealdetails.jsx";
-import Contracts from "./Components/Pages/Contracts.jsx";
-import Contractdetails from "./Components/Pages/Contractdetails.jsx";
-import Brokers from "./Components/Pages/Brokers.jsx";
-import Commissions from "./Components/Pages/Commissions.jsx";
-import Tasks from "./Components/Pages/Tasks.jsx";
-import Reports from "./Components/Pages/Reports.jsx";
-import Calendar from "./Components/Pages/Calender.jsx";
-import FormBuilder from "./Components/Pages/Formbuilder.jsx";
-import Settings from "./Components/Pages/Settings.jsx";
+import Deals from "./Components/CRMPages/Deals.jsx";
+import DealDetails from "./Components/CRMPages/Dealdetails.jsx";
+import Contracts from "./Components/CRMPages/Contracts.jsx";
+import Contractdetails from "./Components/CRMPages/Contractdetails.jsx";
+import Brokers from "./Components/CRMPages/Brokers.jsx";
+import Commissions from "./Components/CRMPages/Commissions.jsx";
+import Tasks from "./Components/CRMPages/Tasks.jsx";
+import Reports from "./Components/CRMPages/Reports.jsx";
+import Calendar from "./Components/CRMPages/Calender.jsx";
+import FormBuilder from "./Components/CRMPages/Formbuilder.jsx";
+import Settings from "./Components/CRMPages/Settings.jsx";
+import AppointmentModal from "./Components/Bookings/Appointmentmodal.jsx";
+import Reservations from "./Components/Bookings/Reservations.jsx";
+import Appointments from "./Components/Bookings/Appointments.jsx";
+import ResourceModal from "./Components/Bookings/Resourcemodal.jsx";
+import ResourceProfile from "./Components/Bookings/Resourceprofile.jsx";
+import Resources from "./Components/Bookings/Resources.jsx";
+import SchedulingSettings from "./Components/Bookings/Schedulingsettings.jsx";
+import ReservationsDetails from "./Components/Bookings/ReservationsDetails.jsx";
+import Products from "./Components/InventoryPages/Products.jsx";
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -78,6 +90,13 @@ const router = createBrowserRouter([
         path: "settings",
         element: <Settings />,
       },
+      { path: "reservations", element: <Reservations /> },
+      { path: "appointments", element: <Appointments /> },
+      { path: "resources", element: <Resources /> },
+      { path: "resources/:id", element: <ResourceProfile /> },
+      { path: "scheduling-settings", element: <SchedulingSettings /> },
+      { path: "resDetails", element: <ReservationsDetails /> },
+      { path: "products", element: <Products /> },
     ],
   },
 ]);
@@ -91,4 +110,3 @@ function App() {
 }
 
 export default App;
-;
