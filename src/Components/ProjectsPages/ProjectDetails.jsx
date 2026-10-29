@@ -176,7 +176,7 @@ export default function ProjectDetails() {
           tone={st === "متأخر" ? "red" : st === "مكتمل" ? "green" : "gray"}
         />
         <MetricCard
-          label="قيمة المشروع"
+          label="قيمة العقد "
           value={money(p.value)}
           badge={`المحصّل ${money(paid)}`}
           tone="green"

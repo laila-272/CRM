@@ -32,15 +32,15 @@ const VISIBLE_CARDS = 3; // columns with more cards than this become scrollable
 const WINDOW_DAYS = 28;
 const COL_TITLE = {
   جديدة: "text-ink",
-  "قيد التنفيذ": "text-blue-600",
-  مراجعة: "text-orange-600",
-  مكتملة: "text-green-600",
+  "قيد التنفيذ": "text-ink",
+  مراجعة: "text-ink",
+  مكتملة: "text-ink",
 };
 const STATUS_CLS = {
   جديدة: "bg-neutral-100 text-neutral-600",
-  "قيد التنفيذ": "bg-blue-50 text-blue-600",
-  مراجعة: "bg-orange-50 text-orange-600",
-  مكتملة: "bg-green-50 text-green-600",
+  "قيد التنفيذ": "bg-neutral-100 text-neutral-600",
+  مراجعة: "bg-neutral-100 text-neutral-600",
+  مكتملة: "bg-neutral-100 text-neutral-600",
 };
 
 function TaskCard({ t, projectName, onOpen, onComplete, onMove }) {
@@ -51,46 +51,31 @@ function TaskCard({ t, projectName, onOpen, onComplete, onMove }) {
       onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}
       className="cursor-grab rounded-xl border border-line bg-white p-3 shadow-sm active:cursor-grabbing"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         <Badge cls={PRIORITY_CLS[t.priority]}>{t.priority}</Badge>
         <span className="text-[9.5px] text-neutral-400">{t.type}</span>
       </div>
-      <button
-        onClick={() => onOpen(t)}
-        className={`mt-2 block text-right text-[12px] font-bold text-ink hover:underline ${t.status === "مكتملة" ? "line-through opacity-60" : ""}`}
-      >
-        {t.title}
-      </button>
-      <Link
-        to={`/projects/${t.projectId}`}
-        className="mt-1 block truncate text-[10px] text-neutral-500 hover:text-ink"
-      >
-        {projectName}
-      </Link>
-      <div className="mt-2 flex items-center justify-between text-[10px]">
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={() => onOpen(t)}
+          className={`mt-2 block text-right text-[12px] font-bold text-ink hover:underline ${t.status === "مكتملة" ? "line-through opacity-60" : ""}`}
+        >
+          {t.title}
+        </button>
+        <Link
+          to={`/projects/${t.projectId}`}
+          className="mt-1 block truncate text-[10px] text-neutral-500 hover:text-ink"
+        >
+          {projectName}
+        </Link>
+      </div>
+      <div className="pt-2 mt-2 flex items-center justify-between text-[10px] border-t border-line">
         <span className="text-neutral-500">{t.owner}</span>
-        <span className={late ? "font-bold text-red-500" : "text-neutral-500"}>
-          {late ? "متأخرة · " : ""}
+        <span
+          className={late ? "font-semibold text-[#B91C1C]" : "text-neutral-500"}
+        >
           {fmtDate(t.due).replace(/ \d{4}$/, "")}
         </span>
-      </div>
-      <div className="mt-2.5 flex items-center justify-between">
-        <button
-          onClick={() => onComplete(t)}
-          className={`h-6 rounded-full border px-3 text-[10px] font-semibold ${t.status === "مكتملة" ? "border-green-200 text-green-600" : "border-line text-ink hover:bg-neutral-50"}`}
-        >
-          {t.status === "مكتملة" ? "إعادة فتح" : "إكمال"}
-        </button>
-        <select
-          value={t.status}
-          onChange={(e) => onMove(t, e.target.value)}
-          aria-label="نقل المهمة"
-          className="h-6 cursor-pointer rounded-md border border-line bg-white px-1.5 text-[10px] outline-none"
-        >
-          {TASK_STATUSES.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
       </div>
     </div>
   );
@@ -110,9 +95,7 @@ function Timeline({ tasks, projectName }) {
   return (
     <section className={`${card} mt-4 p-4`}>
       <h2 className="text-[15px] font-semibold text-ink">الجدول الزمني</h2>
-      <p className="mb-3 mt-0.5 text-[10.5px] text-neutral-500">
-        المهام خلال الأسابيع الأربعة القادمة (الخط البرتقالي = اليوم)
-      </p>
+     
       <div className="overflow-x-auto">
         <div className="min-w-[640px]">
           <div className="grid grid-cols-[170px_1fr] border-b border-line pb-2 text-[10px] text-neutral-400">
@@ -141,11 +124,7 @@ function Timeline({ tasks, projectName }) {
                   </div>
                 </div>
                 <div className="relative h-3">
-                  <div
-                    className="absolute inset-y-0 w-px bg-orange-400"
-                    style={{ right: `${pct(today)}%` }}
-                    aria-hidden
-                  />
+                  
                   <div
                     title={`${fmtDate(t.start)} – ${fmtDate(t.due)}`}
                     className={`absolute top-0.5 h-2 rounded-full ${t.status === "مكتملة" ? "bg-neutral-300" : late ? "bg-red-500" : "bg-ink"}`}
@@ -295,79 +274,17 @@ export default function Execution() {
           tone="gray"
         />
         <MetricCard
-          label="متأخرة"
+          label="مهام متأخرة"
           value={overdue}
           badge={overdue ? "تحتاج متابعة" : "لا يوجد تأخير"}
           tone={overdue ? "red" : "gray"}
         />
         <MetricCard
-          label="مكتملة"
+          label="أُنجزت هذا الأسبوع"
           value={completed}
           badge={`${list.length ? Math.round((completed / list.length) * 100) : 0}% من المعروض`}
           tone="green"
         />
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <div
-          className="flex rounded-lg border border-line bg-white p-0.5"
-          role="tablist"
-        >
-          {[
-            ["board", "لوحة", Columns3],
-            ["list", "قائمة", List],
-          ].map(([k, label, Icon]) => (
-            <button
-              key={k}
-              role="tab"
-              aria-selected={view === k}
-              onClick={() => setView(k)}
-              className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-[11.5px] font-semibold ${view === k ? "bg-ink text-white" : "text-neutral-500"}`}
-            >
-              <Icon size={12} /> {label}
-            </button>
-          ))}
-        </div>
-        <SearchBox
-          value={q}
-          onChange={reset(setQ)}
-          placeholder="ابحث عن مهمة أو مشروع أو مسؤول"
-          className="min-w-[220px] flex-1"
-        />
-        <div className="w-[150px]">
-          <Select value={projectId} onChange={reset(setProjectId)}>
-            <option value="all">كل المشاريع</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="w-[130px]">
-          <Select value={owner} onChange={reset(setOwner)}>
-            <option value="all">كل المسؤولين</option>
-            {OWNERS.map((o) => (
-              <option key={o}>{o}</option>
-            ))}
-          </Select>
-        </div>
-        <div className="w-[120px]">
-          <Select value={priority} onChange={reset(setPriority)}>
-            <option value="all">كل الأولويات</option>
-            {PRIORITIES.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </Select>
-        </div>
-        <div className="w-[110px]">
-          <Select value={type} onChange={reset(setType)}>
-            <option value="all">كل الأنواع</option>
-            {TASK_TYPES.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </Select>
-        </div>
       </div>
 
       {view === "board" ? (
@@ -430,103 +347,7 @@ export default function Execution() {
           </div>
         </div>
       ) : (
-        <section className={`${card} mt-4 overflow-hidden`}>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px]">
-              <thead className="border-b border-line bg-neutral-50/70">
-                <tr>
-                  {[
-                    "المهمة",
-                    "المشروع",
-                    "المسؤول",
-                    "الأولوية",
-                    "الحالة",
-                    "التسليم",
-                    "",
-                  ].map((h, i) => (
-                    <th key={i} className={th}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((t) => (
-                  <tr
-                    key={t.id}
-                    className="border-b border-line last:border-0 hover:bg-neutral-50/60"
-                  >
-                    <td className={td}>
-                      <button
-                        onClick={() => setModal({ task: t })}
-                        className="text-right"
-                      >
-                        <div
-                          className={`text-[12px] font-bold hover:underline ${t.status === "مكتملة" ? "line-through opacity-60" : ""}`}
-                        >
-                          {t.title}
-                        </div>
-                        <div className="text-[10px] text-neutral-400">
-                          {t.type} · {t.stage}
-                        </div>
-                      </button>
-                    </td>
-                    <td className={td}>
-                      <Link
-                        to={`/projects/${t.projectId}`}
-                        className="hover:underline"
-                      >
-                        {projectName(t.projectId)}
-                      </Link>
-                    </td>
-                    <td className={td}>{t.owner}</td>
-                    <td className={td}>
-                      <Badge cls={PRIORITY_CLS[t.priority]}>{t.priority}</Badge>
-                    </td>
-                    <td className={td}>
-                      <Badge
-                        cls={
-                          taskOverdue(t)
-                            ? "bg-red-50 text-red-500"
-                            : STATUS_CLS[t.status]
-                        }
-                      >
-                        {taskOverdue(t) ? "متأخرة" : t.status}
-                      </Badge>
-                    </td>
-                    <td className={`${td} text-neutral-500`}>
-                      {fmtDate(t.due)}
-                    </td>
-                    <td className={td}>
-                      <button
-                        onClick={() => complete(t)}
-                        className="h-6 rounded-full border border-line px-3 text-[10px] hover:bg-neutral-50"
-                      >
-                        {t.status === "مكتملة" ? "إعادة فتح" : "إكمال"}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {!rows.length && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="p-8 text-center text-[11px] text-neutral-400"
-                    >
-                      لا توجد مهام مطابقة
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <PrevNextPager
-            page={cur}
-            pages={pages}
-            onPage={setPage}
-            info={`عرض ${from}–${from ? from + rows.length - 1 : 0} من ${list.length} مهمة`}
-          />
-        </section>
+        ""
       )}
 
       <Timeline tasks={list} projectName={projectName} />

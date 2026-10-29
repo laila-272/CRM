@@ -33,6 +33,7 @@ import Projects from "./Components/ProjectsPages/Projects.jsx";
 import ProjectDetails from "./Components/ProjectsPages/ProjectDetails.jsx";
 import Execution from "./Components/ProjectsPages/Execution.jsx";
 import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
+import LoginPage from "./Components/Auth/Login.jsx";
 
 import "./App.css";
 
@@ -109,6 +110,7 @@ const router = createBrowserRouter([
       { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <ProjectDetails /> },
       { path: "execution", element: <Execution /> },
+      
       { path: "projects-settings", element: <ProjectSettings /> },
     ],
   },

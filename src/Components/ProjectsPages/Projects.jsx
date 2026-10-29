@@ -32,7 +32,12 @@ import {
 } from "../../data/projects.js";
 
 const PAGE_SIZE = 7;
-const STATUS_CHIPS = ["جاري", "متأخر", "مكتمل", "متوقف"];
+const STATUS_CHIPS = [
+  { label: "قيد التنفيذ", value: "جاري" },
+  { label: "متأخرة", value: "متأخر" },
+  { label: "مكتملة", value: "مكتمل" },
+  { label: "متوقفة", value: "متوقف" },
+];
 
 export default function Projects() {
   const { projects, tasks, saveProject } = useProjects();
@@ -140,18 +145,18 @@ export default function Projects() {
           tone={newThisMonth ? "green" : "gray"}
         />
         <MetricCard
-          label="جاري التنفيذ"
+          label="قيد التنفيذ "
           value={count("جاري")}
           badge={`${withInfo.length ? Math.round((count("جاري") / withInfo.length) * 100) : 0}% من الإجمالي`}
         />
         <MetricCard
-          label="متأخرة"
+          label="مشاريع متأخرة"
           value={count("متأخر")}
           badge={count("متأخر") ? "تحتاج تدخل" : "لا يوجد تأخير"}
           tone={count("متأخر") ? "red" : "gray"}
         />
         <MetricCard
-          label="مكتملة"
+          label="تم تسليمها"
           value={count("مكتمل")}
           badge={`${withInfo.length ? Math.round((count("مكتمل") / withInfo.length) * 100) : 0}% من الإجمالي`}
           tone="green"
@@ -170,38 +175,13 @@ export default function Projects() {
             </Chip>
             {STATUS_CHIPS.map((s) => (
               <Chip
-                key={s}
-                active={status === s}
-                onClick={() => reset(setStatus)(s)}
+                key={s.value}
+                active={status === s.value}
+                onClick={() => reset(setStatus)(s.value)}
               >
-                {s}
+                {s.label}
               </Chip>
             ))}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
-          <SearchBox
-            value={q}
-            onChange={reset(setQ)}
-            placeholder="ابحث باسم المشروع أو العميل أو الكود"
-            className="min-w-[220px] flex-1"
-          />
-          <div className="w-[140px]">
-            <Select value={owner} onChange={reset(setOwner)}>
-              <option value="all">كل المسؤولين</option>
-              {OWNERS.map((o) => (
-                <option key={o}>{o}</option>
-              ))}
-            </Select>
-          </div>
-          <div className="w-[130px]">
-            <Select value={priority} onChange={reset(setPriority)}>
-              <option value="all">كل الأولويات</option>
-              {PRIORITIES.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </Select>
           </div>
         </div>
 
@@ -210,18 +190,19 @@ export default function Projects() {
             <thead className="border-y border-line bg-neutral-50/70">
               <tr>
                 {[
-                  "المشروع",
-                  "العميل",
+                  "المشروع والعميل",
+                  "الصفقة",
+                  " المرحلة الحالية",
+                  "التقدم",
                   "المسؤول",
+                  "التسليم المتوقع ",
                   "الحالة",
-                  "نسبة الإنجاز",
-                  "التسليم",
+                  "الإجراءات",
                 ].map((h) => (
                   <th key={h} className={th}>
                     {h}
                   </th>
                 ))}
-                <th className={th} aria-label="إجراء" />
               </tr>
             </thead>
             <tbody>
@@ -242,25 +223,28 @@ export default function Projects() {
                         dir="ltr"
                         className="mt-0.5 text-right text-[10px] text-neutral-400"
                       >
-                        {p.code}
+                        {p.client}
                       </div>
                     </Link>
                   </td>
-                  <td className={td}>{p.client}</td>
-                  <td className={td}>{p.owner}</td>
-                  <td className={td}>
-                    <Badge cls={PSTATUS_CLS[p.st]}>{p.st}</Badge>
-                  </td>
+                  <td className={td}>{p.code}</td>
+                  <td className={td}> {p.stages[p.stageIndex]}</td>
+
                   <td className={td}>
                     <ProgressBar value={p.progress} late={p.st === "متأخر"} />
                   </td>
+                  <td className={td}>{p.owner}</td>
+
                   <td className={`${td} text-neutral-500`}>{fmtDate(p.due)}</td>
+                  <td className={td}>
+                    <Badge cls={PSTATUS_CLS[p.st]}>{p.st}</Badge>
+                  </td>
                   <td className={td}>
                     <Link
                       to={`/projects/${p.id}`}
                       className="inline-flex items-center gap-1 text-[10.5px] text-neutral-500 hover:text-ink"
                     >
-                      عرض التفاصيل <ArrowLeft size={12} />
+                      عرض <ArrowLeft size={12} />
                     </Link>
                   </td>
                 </tr>

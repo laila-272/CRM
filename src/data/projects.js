@@ -15,6 +15,7 @@ export const PRIORITY_CLS = {
   متوسطة: "bg-blue-50 text-blue-600",
   منخفضة: "bg-neutral-100 text-neutral-500",
 };
+// export const STAGE = ["التنفيذ", "التخطيط", "الاختبار", "مكتمل"];
 export const TASK_STATUSES = ["جديدة", "قيد التنفيذ", "مراجعة", "مكتملة"];
 export const TASK_TYPES = ["تطوير", "تصميم", "مراجعة", "اجتماع"];
 export const PROJECT_STATUSES = ["جاري", "مكتمل", "متوقف"];

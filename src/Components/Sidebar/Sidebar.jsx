@@ -73,6 +73,15 @@ const groups = [
     ],
   },
   {
+    title: "المشاريع والتنفيذ",
+    icon: Megaphone,
+    items: [
+      { label: "المشاريع", to: "/projects" },
+      { label: "المهام والتنفيذ", to: "/execution" },
+      { label: "الاعدادات", to: "/projects-settings" },
+    ],
+  },
+  {
     title: "المخزون",
     icon: Users,
     open: false,
@@ -109,15 +118,6 @@ const groups = [
     ],
   },
 
-  {
-    title: "المشاريع والتنفيذ",
-    icon: Megaphone,
-    items: [
-      { label: "المشاريع", to: "/projects" },
-      { label: "المهام والتنفيذ", to: "/execution" },
-      { label: "الاعدادات", to: "/projects-settings" },
-    ],
-  },
   {
     title: "الموارد البشرية",
     icon: UserCog,
