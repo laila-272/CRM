@@ -82,6 +82,14 @@ const groups = [
     ],
   },
   {
+    title: "صندوق الوارد",
+    icon: LifeBuoy,
+    items: [
+      { label: " الدعم وخدمة العملاء", to: "/support" },
+      { label: "التسويق", to: "/marketing" },
+    ],
+  },
+  {
     title: "المخزون",
     icon: Users,
     open: false,
@@ -94,6 +102,7 @@ const groups = [
       { label: "المخازن", to: "#", icon: Handshake },
     ],
   },
+
   {
     title: "المحاسبة",
     icon: Wallet,
@@ -123,11 +132,7 @@ const groups = [
     icon: UserCog,
     items: [{ label: "الموظفون", to: "#" }],
   },
-  {
-    title: "صندوق الوارد",
-    icon: LifeBuoy,
-    items: [{ label: "التذاكر", to: "#" }],
-  },
+
   {
     title: "الإعدادات",
     icon: Settings,

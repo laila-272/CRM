@@ -28,7 +28,7 @@ import {
 
 const PAGE_SIZE = 6;
 const TASK_STATUS_CLS = {
-  جديدة: "bg-neutral-100 text-neutral-600",
+  للتنفيذ: "bg-neutral-100 text-neutral-600",
   "قيد التنفيذ": "bg-blue-50 text-blue-600",
   مراجعة: "bg-orange-50 text-orange-600",
   مكتملة: "bg-green-50 text-green-600",
@@ -176,7 +176,7 @@ export default function ProjectDetails() {
           tone={st === "متأخر" ? "red" : st === "مكتمل" ? "green" : "gray"}
         />
         <MetricCard
-          label="قيمة العقد "
+          label="قيمة المشروع"
           value={money(p.value)}
           badge={`المحصّل ${money(paid)}`}
           tone="green"
@@ -201,7 +201,7 @@ export default function ProjectDetails() {
           {p.description}
         </p>
         <ol
-          className="grid overflow-hidden"
+          className="grid"
           style={{
             gridTemplateColumns: `repeat(${p.stages.length}, minmax(0, 1fr))`,
           }}

@@ -29,7 +29,7 @@ export default function ProjectTaskModal({
     priority: loadProjectSettings().defaultPriority,
     start: todayIso(),
     due: addDays(todayIso(), 7),
-    status: "جديدة",
+    status: "للتنفيذ",
     notes: "",
     ...defaults,
     ...task,
@@ -67,6 +67,7 @@ export default function ProjectTaskModal({
       notes: f.notes.trim(),
       stage: stages.includes(f.stage) ? f.stage : stages[0] || "",
       id: task?.id ?? `t${Date.now()}`,
+      code: task?.code ?? `T-${String(Date.now()).slice(-4)}`,
     });
   };
 

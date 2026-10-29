@@ -15,8 +15,7 @@ export const PRIORITY_CLS = {
   متوسطة: "bg-blue-50 text-blue-600",
   منخفضة: "bg-neutral-100 text-neutral-500",
 };
-// export const STAGE = ["التنفيذ", "التخطيط", "الاختبار", "مكتمل"];
-export const TASK_STATUSES = ["جديدة", "قيد التنفيذ", "مراجعة", "مكتملة"];
+export const TASK_STATUSES = ["للتنفيذ", "قيد التنفيذ", "مراجعة", "مكتملة"];
 export const TASK_TYPES = ["تطوير", "تصميم", "مراجعة", "اجتماع"];
 export const PROJECT_STATUSES = ["جاري", "مكتمل", "متوقف"];
 export const PSTATUS_CLS = {
@@ -56,6 +55,13 @@ export const daysBetween = (a, b) => {
   };
   return Math.round((u(b) - u(a)) / 864e5);
 };
+export const sundayOf = (iso) => {
+  const [y, m, d] = iso.split("-").map(Number);
+  return addDays(iso, -new Date(y, m - 1, d).getDay());
+};
+export const completedOn = (t) => t.completedAt || t.due;
+export const taskCode = (t) =>
+  t.code || `T-${String(t.id).replace(/\D/g, "").slice(-4)}`;
 export const money = (n) => `${Number(n).toLocaleString("en-US")} ج.م`;
 
 /* ---------- seed ---------- */
@@ -161,10 +167,17 @@ function seed() {
       const status =
         k < doneCount
           ? "مكتملة"
-          : ["قيد التنفيذ", "قيد التنفيذ", "مراجعة", "جديدة"][(k + i) % 4];
+          : ["قيد التنفيذ", "قيد التنفيذ", "مراجعة", "للتنفيذ"][(k + i) % 4];
       const due = addDays(p.due, -(n - 1 - k) * 4);
       tasks.push({
         id: `t${i + 1}-${k + 1}`,
+        code: `T-${300 + tasks.length}`,
+        completedAt:
+          status === "مكتملة"
+            ? addDays(due, -1) <= today
+              ? addDays(due, -1)
+              : addDays(today, -1)
+            : null,
         projectId: p.id,
         title: TITLES[(i + k * 5) % TITLES.length],
         type: TASK_TYPES[(i + k) % 4],
@@ -184,7 +197,16 @@ function seed() {
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const data = JSON.parse(raw);
+      // older saved data used the status name "جديدة"
+      return {
+        ...data,
+        tasks: data.tasks.map((t) =>
+          t.status === "جديدة" ? { ...t, status: "للتنفيذ" } : t,
+        ),
+      };
+    }
   } catch {
     /* fall back to seed */
   }
@@ -215,8 +237,14 @@ export function useProjects() {
     tasks: data.tasks,
     saveProject: upsert("projects"),
     // when "auto-complete" is enabled in settings, finishing the last open task completes the project
-    saveTask: (task) =>
+    saveTask: (input) =>
       setData((cur) => {
+        // keep completion date in sync with the status (used for "completed this week")
+        const task = {
+          ...input,
+          completedAt:
+            input.status === "مكتملة" ? input.completedAt || todayIso() : null,
+        };
         const tasks = cur.tasks.some((x) => x.id === task.id)
           ? cur.tasks.map((x) => (x.id === task.id ? task : x))
           : [task, ...cur.tasks];

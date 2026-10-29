@@ -34,7 +34,8 @@ import ProjectDetails from "./Components/ProjectsPages/ProjectDetails.jsx";
 import Execution from "./Components/ProjectsPages/Execution.jsx";
 import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
 import LoginPage from "./Components/Auth/Login.jsx";
-
+import Marketing from "./Components/Support/Marketing.jsx";
+import Support from "./Components/Support/Support.jsx";
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -112,6 +113,8 @@ const router = createBrowserRouter([
       { path: "execution", element: <Execution /> },
       
       { path: "projects-settings", element: <ProjectSettings /> },
+      { path: "marketing", element: <Marketing /> },
+      { path: "support", element: <Support /> },
     ],
   },
 ]);
