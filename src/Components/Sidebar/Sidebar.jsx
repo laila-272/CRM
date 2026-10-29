@@ -80,8 +80,8 @@ const groups = [
       { label: "المنتجات", to: "/products", icon: Handshake },
       { label: "حركة المخزون", to: "#", icon: Handshake },
       { label: "تنبيهات المخزون", to: "#", icon: Handshake },
-      { label: "الموردون والمشتريات", to: "#", icon: Handshake },
-      { label: "الجرد", to: "#", icon: Handshake },
+      { label: "الموردون والمشتريات", to: "/suppliers", icon: Handshake },
+      { label: "الجرد", to: "/inventory", icon: Handshake },
       { label: "المخازن", to: "#", icon: Handshake },
     ],
   },
@@ -110,9 +110,13 @@ const groups = [
   },
 
   {
-    title: "الوحدات والمشاريع",
+    title: "المشاريع والتنفيذ",
     icon: Megaphone,
-    items: [{ label: "الحملات", to: "#" }],
+    items: [
+      { label: "المشاريع", to: "/projects" },
+      { label: "المهام والتنفيذ", to: "/execution" },
+      { label: "الاعدادات", to: "/projects-settings" },
+    ],
   },
   {
     title: "الموارد البشرية",

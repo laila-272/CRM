@@ -27,6 +27,13 @@ import Resources from "./Components/Bookings/Resources.jsx";
 import SchedulingSettings from "./Components/Bookings/Schedulingsettings.jsx";
 import ReservationsDetails from "./Components/Bookings/ReservationsDetails.jsx";
 import Products from "./Components/InventoryPages/Products.jsx";
+import Suppliers from "./Components/InventoryPages/Suppliers.jsx";
+import Inventory from "./Components/InventoryPages/Inventory.jsx";
+import Projects from "./Components/ProjectsPages/Projects.jsx";
+import ProjectDetails from "./Components/ProjectsPages/ProjectDetails.jsx";
+import Execution from "./Components/ProjectsPages/Execution.jsx";
+import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
+
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -97,6 +104,12 @@ const router = createBrowserRouter([
       { path: "scheduling-settings", element: <SchedulingSettings /> },
       { path: "resDetails", element: <ReservationsDetails /> },
       { path: "products", element: <Products /> },
+      { path: "suppliers", element: <Suppliers /> },
+      { path: "inventory", element: <Inventory /> },
+      { path: "projects", element: <Projects /> },
+      { path: "projects/:id", element: <ProjectDetails /> },
+      { path: "execution", element: <Execution /> },
+      { path: "projects-settings", element: <ProjectSettings /> },
     ],
   },
 ]);
