@@ -36,8 +36,17 @@ import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
 import LoginPage from "./Components/Auth/Login.jsx";
 import Marketing from "./Components/Support/Marketing.jsx";
 import Support from "./Components/Support/Support.jsx";
-import "./App.css";
-
+import StockMove from './Components/InventoryPages/StockMove.jsx';
+import Warehouses from './Components/InventoryPages/Warehouses';
+import StockAlerts from './Components/InventoryPages/Alerts.jsx';
+import SubTemplates from './Components/Settings/SubscribtionTemplates.jsx';
+import SubsPlan from "./Components/Settings/SubscribtionPlan.jsx";
+import UsersPermissions from "./Components/Settings/UsersPermissions.jsx";
+import GeneralSettings from "./Components/Settings/Settings.jsx";
+import Orders from "./Components/SalesPages/Orders.jsx";
+import SalesOrders from "./Components/SalesPages/Salesorders.jsx";
+import SalesReports from "./Components/SalesPages/Salesreports.jsx";
+import SalesSettings from "./Components/SalesPages/Salessettings.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -111,10 +120,21 @@ const router = createBrowserRouter([
       { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <ProjectDetails /> },
       { path: "execution", element: <Execution /> },
-      
+
       { path: "projects-settings", element: <ProjectSettings /> },
       { path: "marketing", element: <Marketing /> },
       { path: "support", element: <Support /> },
+      { path: "stockmovements", element: <StockMove /> },
+      { path: "warehouses", element: <Warehouses /> },
+      { path: "stock-alerts", element: <StockAlerts /> },
+      { path: "subscriptions-templates", element: <SubTemplates /> },
+      { path: "subscription-plans", element: <SubsPlan /> },
+      { path: "users-permissions", element: <UsersPermissions /> },
+      { path: "general-settings", element: <GeneralSettings /> },
+      { path: "orders", element: <Orders /> },
+      { path: "sales-orders", element: <SalesOrders /> },
+      { path: "sales-reports", element: <SalesReports /> },
+      { path: "sales-settings", element: <SalesSettings /> },
     ],
   },
 ]);

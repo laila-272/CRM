@@ -1,301 +1,282 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import React, { useState } from "react";
 import {
-  card,
-  Chip,
-  egp,
+  Truck,
+  FileText,
+  ShoppingCart,
+  Clock,
+  Plus,
+  Building2,
+} from "lucide-react";
+import {
   PageHeader,
-  PagerBar,
-  SearchBox,
-  StatCard,
-  td,
+  btnDark,
+  btnLight,
+  egp,
   th,
-} from "../Shared/ui.jsx";
-import { FileText, ShoppingCart, Van, Clock4 } from "lucide-react";
-const initialSuppliers = [
-  {
-    id: 1,
-    name: "النيل للإلكترونيات",
-    phone: "5678 234 0100",
-    category: "الكهرباء",
-    amount: "158,400",
-  },
-  {
-    id: 2,
-    name: "الأمل للكابلات",
-    phone: "5432 876 0111",
-    category: "الإكسسوارات",
-    amount: "31,500",
-  },
-  {
-    id: 3,
-    name: "أطلس للموردات",
-    phone: "7788 456 0122",
-    category: "الأدوات",
-    amount: "112,000",
-  },
-  {
-    id: 4,
-    name: "المتحدة للتجهيزات",
-    phone: "9021 210 0155",
-    category: "معدات",
-    amount: "27,900",
-  },
-  {
-    id: 5,
-    name: "الشرق للاستيراد",
-    phone: "4321 765 0109",
-    category: "استيراد",
-    amount: "64,800",
-  },
-];
-
-const initialOrders = [
-  {
-    id: "PO-2041",
-    supplier: "النيل للإلكترونيات",
-    items: 240,
-    total: "86,400",
-    date: "10/20",
-    status: "قيد الفحص",
-  },
-  {
-    id: "PO-2040",
-    supplier: "الأمل للكابلات",
-    items: 180,
-    total: "31,500",
-    date: "10/18",
-    status: "تم الاستلام",
-  },
-  {
-    id: "PO-2039",
-    supplier: "أطلس للموردات",
-    items: 320,
-    total: "112,000",
-    date: "10/15",
-    status: "استلام جزئي",
-  },
-  {
-    id: "PO-2038",
-    supplier: "المتحدة للتجهيزات",
-    items: 90,
-    total: "27,900",
-    date: "10/12",
-    status: "تم الاستلام",
-  },
-  {
-    id: "PO-2037",
-    supplier: "الشرق للاستيراد",
-    items: 150,
-    total: "64,800",
-    date: "10/09",
-    status: "متأخر",
-  },
-  {
-    id: "PO-2036",
-    supplier: "النيل للإلكترونيات",
-    items: 200,
-    total: "72,000",
-    date: "10/05",
-    status: "تم الاستلام",
-  },
-];
-
-function OrderStatus({ status }) {
-  const styles = {
-    "تم الاستلام": "bg-[#F0F1F3] text-[#555B65]",
-    "قيد الفحص": "bg-[#F0F1F3] text-[#555B65]",
-    "استلام جزئي": "bg-[#F0F1F3] text-[#555B65]",
-    متأخر: "bg-[#FFF0F0] text-[#E65C5C]",
-  };
-
-  return (
-    <span
-      className={`inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[9px] ${
-        styles[status] || styles["قيد الفحص"]
-      }`}
-    >
-      {status}
-    </span>
-  );
-}
+  td,
+  card,
+  InvStat,
+  TableCard,
+  StatusBadge,
+  EmptyRow,
+  Modal,
+  Field,
+  input,
+  useToast,
+} from "./Inventoryui.jsx";
+import PurchaseOrderModal from "./PurchaseOrderModal.jsx";
+import { SUPPLIERS, PURCHASE_ORDERS, PO_STATUS } from "../../data/inventory.js";
 
 export default function Suppliers() {
-  const [suppliers, setSuppliers] = useState(initialSuppliers);
-  const [orders] = useState(initialOrders);
+  const [sups, setSups] = useState(SUPPLIERS);
+  const [orders, setOrders] = useState(PURCHASE_ORDERS);
+  const [poOpen, setPoOpen] = useState(false);
+  const [supForm, setSupForm] = useState(null);
+  const [err, setErr] = useState("");
+  const [toast, show] = useToast();
 
-  const addSupplier = () => {
-    const name = window.prompt("اكتبي اسم المورد:");
+  const open = orders.filter(
+    (o) => o.status === "pending" || o.status === "shipping",
+  );
+  const month = orders
+    .filter((o) => o.status !== "cancelled")
+    .reduce((a, o) => a + o.total, 0);
+  const waiting = orders.filter((o) => o.status === "pending").length;
 
-    if (!name?.trim()) return;
-
-    const phone = window.prompt("اكتبي رقم الهاتف:") || "";
-    const newSupplier = {
-      id: Date.now(),
-      name: name.trim(),
-      phone,
-      category: "مورد جديد",
-      amount: "0",
-    };
-
-    setSuppliers((prev) => [...prev, newSupplier]);
+  const addOrder = (o) => {
+    const n = 2042 + orders.length - PURCHASE_ORDERS.length;
+    const d = new Date(o.date);
+    setOrders((s) => [
+      {
+        no: `PO-${n}`,
+        sup: o.supName,
+        qty: o.qty,
+        total: o.total,
+        date: `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`,
+        status: "pending",
+      },
+      ...s,
+    ]);
+    show("تم إنشاء أمر الشراء");
+  };
+  const receive = (no) => {
+    setOrders((s) =>
+      s.map((o) => (o.no === no ? { ...o, status: "received" } : o)),
+    );
+    show("تم تأكيد الاستلام");
+  };
+  const saveSup = () => {
+    if (!supForm.name.trim()) return setErr("اسم المورد مطلوب");
+    setSups((s) => [
+      ...s,
+      {
+        id: `s${Date.now()}`,
+        name: supForm.name.trim(),
+        phone: supForm.phone,
+        city: supForm.city,
+        total: 0,
+      },
+    ]);
+    setSupForm(null);
+    show("تمت إضافة المورد");
   };
 
   return (
-    <div
-      dir="rtl"
-      className="min-h-full w-full min-w-0 bg-[#F5F6F8] p-3 sm:p-4"
-    >
+    <div dir="rtl" className="space-y-5">
       <PageHeader
         title="الموردون والمشتريات"
         subtitle="إدارة الموردين وأوامر الشراء وحالة استلام البضاعة"
       >
-        <button
-          className="btn !bg-black text-white !rounded-lg h-9"
-          onClick={() => document.getElementById("broker-name")?.focus()}
-        >
-          + تسجيل صرف عمولة
+        <button className={btnDark} onClick={() => setPoOpen(true)}>
+          <Plus size={13} /> أمر شراء جديد
         </button>
-        <button className="btn">قواعد العمولات</button>
+        <button
+          className={btnLight}
+          onClick={() => {
+            setErr("");
+            setSupForm({ name: "", phone: "", city: "" });
+          }}
+        >
+          <Plus size={13} /> مورد جديد
+        </button>
       </PageHeader>
 
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <StatCard icon={Clock4} value={2} label="إجمالي العمولات" />
-        <StatCard icon={Van} value={2} label="العمولات المدفوعة" />
-        <StatCard icon={FileText} value={2} label="العمولات المعروضة" />
-        <StatCard icon={ShoppingCart} value={2} label="العمولات المعروضة" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <InvStat
+          icon={Clock}
+          value={`${waiting} أوامر`}
+          note="بانتظار الاستلام"
+          tone="orange"
+        />
+        <InvStat
+          icon={ShoppingCart}
+          value={egp(month)}
+          note="مشتريات الشهر"
+          tone="green"
+        />
+        <InvStat
+          icon={FileText}
+          value={open.length}
+          note="أوامر شراء مفتوحة"
+          tone="orange"
+        />
+        <InvStat
+          icon={Truck}
+          value={sups.length}
+          note="الموردون النشطون"
+          tone="green"
+        />
       </div>
-      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-[1fr_2fr] mt-4">
-        {/* الموردون - اليمين */}
-        <section className="min-w-0 rounded-xl border border-[#E9EBEF] bg-white p-3">
-          <div className="mb-3 flex items-start justify-between gap-2">
-            <div>
-              <h2 className="text-[11px] font-semibold text-[#202124]">
-                الموردون
-              </h2>
-              <p className="mt-1 text-[8px] text-[#9699A1]">
-                بيانات التواصل وحسابات التعامل
-              </p>
-            </div>
 
-            <button
-              type="button"
-              onClick={addSupplier}
-              className="flex shrink-0 items-center gap-1 text-[9px] text-[#292929] hover:text-black"
-            >
-              <Plus size={11} />
-              إضافة مورد
-            </button>
-          </div>
-
-          <div className="divide-y divide-[#F0F1F3]">
-            {suppliers.map((supplier) => (
-              <div
-                key={supplier.id}
-                className="flex min-h-[47px] items-center justify-between gap-2 py-2"
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className={`${card} p-4`}>
+          <h2 className="text-[14px] font-semibold text-ink">الموردون</h2>
+          <p className="mt-0.5 mb-2 text-[10.5px] text-neutral-500">
+            إجمالي {sups.length} مورد
+          </p>
+          <ul className="divide-y divide-line">
+            {sups.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-start justify-between gap-2 py-2.5"
               >
-                <div className="min-w-0">
-                  <p className="truncate text-[10px] font-semibold text-[#292929]">
-                    {supplier.name}
-                  </p>
-                  <p className="mt-1 truncate text-[8px] text-[#A0A2A8]">
-                    {supplier.category} · {supplier.phone}
-                  </p>
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 grid h-6 w-6 place-items-center rounded-md bg-[#F1F2F4] text-neutral-500">
+                    <Building2 size={12} />
+                  </span>
+                  <div className="leading-tight">
+                    <div className="text-[11.5px] font-semibold text-ink">
+                      {s.name}
+                    </div>
+                    <div className="mt-0.5 text-[9.5px] text-neutral-400">
+                      {s.phone} · {s.city}
+                    </div>
+                  </div>
                 </div>
-
-                <p dir="ltr" className="shrink-0 text-[8px] text-[#656873]">
-                  {supplier.amount} EGP
-                </p>
-              </div>
+                <span className="text-[10px] text-neutral-500" dir="ltr">
+                  {egp(s.total)}
+                </span>
+              </li>
             ))}
-          </div>
-        </section>
+          </ul>
+        </div>
 
-        {/* أوامر الشراء - الشمال */}
-        <section className="min-w-0 rounded-xl border border-[#E9EBEF] bg-white p-3">
-          <div className="mb-3 flex items-start justify-between">
-            <div>
-              <h2 className="text-[11px] font-semibold text-[#202124]">
-                أوامر الشراء
-              </h2>
-              <p className="mt-1 text-[8px] text-[#9699A1]">
-                إدارة أوامر الشراء وحالة الاستلام
-              </p>
-            </div>
-
-            <span className="pt-1 text-[8px] text-[#777B84]">عرض الكل</span>
-          </div>
-
-          <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[470px] table-fixed border-collapse">
-              <thead>
-                <tr className="border-b border-[#ECEEF1]">
-                  <th className="w-[14%] px-1 py-2 text-right text-[8px] font-medium text-[#92959D]">
-                    رقم الطلب
+        <TableCard
+          title="أوامر الشراء"
+          subtitle="آخر أوامر الشراء المسجلة"
+          info={`${orders.length} أمر`}
+        >
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-line">
+                {[
+                  "رقم الأمر",
+                  "المورد",
+                  "الكمية",
+                  "الإجمالي",
+                  "التاريخ",
+                  "حالة الاستلام",
+                  "",
+                ].map((h, i) => (
+                  <th key={i} className={th}>
+                    {h}
                   </th>
-                  <th className="w-[26%] px-1 py-2 text-right text-[8px] font-medium text-[#92959D]">
-                    المورد
-                  </th>
-                  <th className="w-[12%] px-1 py-2 text-center text-[8px] font-medium text-[#92959D]">
-                    المنتجات
-                  </th>
-                  <th className="w-[18%] px-1 py-2 text-center text-[8px] font-medium text-[#92959D]">
-                    تكلفة الشراء
-                  </th>
-                  <th className="w-[12%] px-1 py-2 text-center text-[8px] font-medium text-[#92959D]">
-                    التاريخ
-                  </th>
-                  <th className="w-[18%] px-1 py-2 text-center text-[8px] font-medium text-[#92959D]">
-                    حالة الاستلام
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="border-b border-[#F0F1F3] last:border-0"
-                  >
-                    <td
-                      dir="ltr"
-                      className="truncate px-1 py-[9px] text-right text-[8px] text-[#454956]"
-                    >
-                      {order.id}
-                    </td>
-
-                    <td className="truncate px-1 py-[9px] text-right text-[8px] text-[#454956]">
-                      {order.supplier}
-                    </td>
-
-                    <td className="px-1 py-[9px] text-center text-[8px] text-[#454956]">
-                      {order.items}
-                    </td>
-
-                    <td
-                      dir="ltr"
-                      className="whitespace-nowrap px-1 py-[9px] text-center text-[8px] text-[#454956]"
-                    >
-                      {order.total} EGP
-                    </td>
-
-                    <td
-                      dir="ltr"
-                      className="px-1 py-[9px] text-center text-[8px] text-[#454956]"
-                    >
-                      {order.date}
-                    </td>
-
-                    <td className="px-1 py-[9px] text-center">
-                      <OrderStatus status={order.status} />
-                    </td>
-                  </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.length === 0 && <EmptyRow cols={7} />}
+              {orders.map((o) => (
+                <tr
+                  key={o.no}
+                  className="border-b border-line last:border-0 hover:bg-[#FAFAFB]"
+                >
+                  <td className={`${td} font-semibold`}>{o.no}</td>
+                  <td className={td}>{o.sup}</td>
+                  <td className={td}>{o.qty}</td>
+                  <td className={td}>{egp(o.total)}</td>
+                  <td className={td}>{o.date}</td>
+                  <td className={td}>
+                    <StatusBadge tone={PO_STATUS[o.status].tone}>
+                      {PO_STATUS[o.status].label}
+                    </StatusBadge>
+                  </td>
+                  <td className={td}>
+                    {(o.status === "pending" || o.status === "shipping") && (
+                      <button
+                        onClick={() => receive(o.no)}
+                        className="text-[10px] font-semibold text-neutral-500 underline hover:text-ink"
+                      >
+                        تأكيد الاستلام
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TableCard>
       </div>
+
+      <PurchaseOrderModal
+        open={poOpen}
+        onClose={() => setPoOpen(false)}
+        onSubmit={addOrder}
+      />
+      <Modal
+        open={!!supForm}
+        onClose={() => setSupForm(null)}
+        title="مورد جديد"
+        width="max-w-sm"
+      >
+        {supForm && (
+          <div className="space-y-3">
+            <Field label="اسم المورد" error={err}>
+              <input
+                className={input}
+                value={supForm.name}
+                onChange={(e) =>
+                  setSupForm({ ...supForm, name: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="رقم الهاتف">
+              <input
+                className={input}
+                dir="ltr"
+                value={supForm.phone}
+                onChange={(e) =>
+                  setSupForm({ ...supForm, phone: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="المدينة">
+              <input
+                className={input}
+                value={supForm.city}
+                onChange={(e) =>
+                  setSupForm({ ...supForm, city: e.target.value })
+                }
+              />
+            </Field>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={saveSup}
+                className="h-9 flex-1 rounded-lg bg-ink text-[12px] font-semibold text-white"
+              >
+                حفظ
+              </button>
+              <button
+                onClick={() => setSupForm(null)}
+                className="h-9 w-24 rounded-lg border border-line text-[12px] font-semibold"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+      {toast}
     </div>
   );
 }

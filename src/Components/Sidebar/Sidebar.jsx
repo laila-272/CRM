@@ -95,11 +95,31 @@ const groups = [
     open: false,
     items: [
       { label: "المنتجات", to: "/products", icon: Handshake },
-      { label: "حركة المخزون", to: "#", icon: Handshake },
-      { label: "تنبيهات المخزون", to: "#", icon: Handshake },
+      { label: "حركة المخزون", to: "/stockmovements", icon: Handshake },
+      { label: "تنبيهات المخزون", to: "/stock-alerts", icon: Handshake },
       { label: "الموردون والمشتريات", to: "/suppliers", icon: Handshake },
       { label: "الجرد", to: "/inventory", icon: Handshake },
-      { label: "المخازن", to: "#", icon: Handshake },
+      { label: "المخازن", to: "/warehouses", icon: Handshake },
+    ],
+  },
+  {
+    title: "الإعدادات",
+    icon: Settings,
+    items: [
+      { label: "الإعدادات العامة", to: "/general-settings" },
+      { label: "المستخدمون والصلاحيات ", to: "/users-permissions" },
+      { label: "قوالب الإشعارات", to: "/subscriptions-templates" },
+      { label: "خطة الاشتراك", to: "/subscription-plans" },
+    ],
+  },
+  {
+    title: "المبيعات",
+    icon: Wallet,
+    items: [
+      { label: "الطلبات  ", to: "/orders" },
+      { label: "أوامر البيع", to: "/sales-orders" },
+      { label: " تقارير ", to: "/sales-reports" },
+      { label: "إعدادات المبيعات", to: "/sales-settings" },
     ],
   },
 
@@ -117,26 +137,9 @@ const groups = [
     ],
   },
   {
-    title: "المبيعات",
-    icon: Wallet,
-    items: [
-      { label: "الطلبات", to: "#" },
-      { label: "أوامر البيع", to: "#" },
-      { label: "تقارير المبيعات", to: "#" },
-      { label: "إعدادات المبيعات", to: "#" },
-    ],
-  },
-
-  {
     title: "الموارد البشرية",
     icon: UserCog,
     items: [{ label: "الموظفون", to: "#" }],
-  },
-
-  {
-    title: "الإعدادات",
-    icon: Settings,
-    items: [{ label: "الإعدادات", to: "#" }],
   },
 ];
 
