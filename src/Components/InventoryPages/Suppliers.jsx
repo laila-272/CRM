@@ -24,7 +24,7 @@ import {
   input,
   useToast,
 } from "./Inventoryui.jsx";
-import PurchaseOrderModal from "./PurchaseOrderModal.jsx";
+import PurchaseOrderModal from "./Purchaseordermodal.jsx";
 import { SUPPLIERS, PURCHASE_ORDERS, PO_STATUS } from "../../data/inventory.js";
 
 export default function Suppliers() {

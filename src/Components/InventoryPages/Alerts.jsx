@@ -23,7 +23,7 @@ import {
   input,
   useToast,
 } from "./Inventoryui.jsx";
-import PurchaseOrderModal from "./PurchaseOrderModal.jsx";
+import PurchaseOrderModal from "./Purchaseordermodal.jsx";
 import {
   PRODUCTS,
   SUPPLIERS,
