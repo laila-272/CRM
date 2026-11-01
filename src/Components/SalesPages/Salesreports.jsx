@@ -11,7 +11,7 @@ import {
   downloadCsv,
 } from "../Shared/ui.jsx";
 import { Toolbar, AdvancedPanel, MiniField, useToast } from "./Shared.jsx";
-import CreateSalesReportModal from "./Createsalesreportmodal.jsxgit add .";
+import CreateSalesReportModal from "./Createsalesreportmodal.jsx";
 import {
   MONTHS6,
   TEAM_PERF,
