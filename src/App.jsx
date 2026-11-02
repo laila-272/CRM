@@ -33,20 +33,28 @@ import Projects from "./Components/ProjectsPages/Projects.jsx";
 import ProjectDetails from "./Components/ProjectsPages/ProjectDetails.jsx";
 import Execution from "./Components/ProjectsPages/Execution.jsx";
 import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
-import LoginPage from "./Components/Auth/Login.jsx";
+import LoginPage from "./Components/AuthPages/Login.jsx";
 import Marketing from "./Components/Support/Marketing.jsx";
 import Support from "./Components/Support/Support.jsx";
 import StockMove from './Components/InventoryPages/StockMove.jsx';
 import Warehouses from './Components/InventoryPages/Warehouses';
 import StockAlerts from './Components/InventoryPages/Alerts.jsx';
-import SubTemplates from './Components/Settings/SubscribtionTemplates.jsx';
-import SubsPlan from "./Components/Settings/SubscribtionPlan.jsx";
-import UsersPermissions from "./Components/Settings/UsersPermissions.jsx";
-import GeneralSettings from "./Components/Settings/Settings.jsx";
+import SubTemplates from './Components/SettingsPages/SubscribtionTemplates.jsx';
+import SubsPlan from "./Components/SettingsPages/SubscribtionPlan.jsx";
+import UsersPermissions from "./Components/SettingsPages/UsersPermissions.jsx";
+import GeneralSettings from "./Components/SettingsPages/Settings.jsx";
 import Orders from "./Components/SalesPages/Orders.jsx";
 import SalesOrders from "./Components/SalesPages/Salesorders.jsx";
 import SalesReports from "./Components/SalesPages/Salesreports.jsx";
 import SalesSettings from "./Components/SalesPages/Salessettings.jsx";
+
+import Accounts from "./Components/AccountingPages/Accounts.jsx";
+import Invoices from "./Components/AccountingPages/Invoices.jsx";
+import Expenses from "./Components/AccountingPages/Expenses.jsx";
+import Banks from "./Components/AccountingPages/Banks.jsx";
+import JournalEntries from "./Components/AccountingPages/Journalentries.jsx";
+import FinancialReports from "./Components/AccountingPages/Financialreport.jsx";
+import AccountingSettings from "./Components/AccountingPages/Accountingsettings.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -135,6 +143,13 @@ const router = createBrowserRouter([
       { path: "sales-orders", element: <SalesOrders /> },
       { path: "sales-reports", element: <SalesReports /> },
       { path: "sales-settings", element: <SalesSettings /> },
+      { path: "accounting/accounts", element: <Accounts /> },
+      { path: "accounting/invoices", element: <Invoices /> },
+      { path: "accounting/expenses", element: <Expenses /> },
+      { path: "accounting/banks", element: <Banks /> },
+      { path: "accounting/journal-entries", element: <JournalEntries /> },
+      { path: "accounting/reports", element: <FinancialReports /> },
+      { path: "accounting/settings", element: <AccountingSettings /> },
     ],
   },
 ]);

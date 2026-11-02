@@ -127,13 +127,25 @@ const groups = [
     title: "المحاسبة",
     icon: Wallet,
     items: [
-      { label: "الحسابات", to: "#" },
-      { label: "الفواتير والتحصيل", to: "#" },
-      { label: "المشتريات و المصروفات", to: "#" },
-      { label: "البنوك و الحسابات", to: "#" },
-      { label: "القيود المحاسبيه", to: "#" },
-      { label: " التقارير المالية", to: "#" },
-      { label: "اعدادات المحاسبه", to: "#" },
+      { label: "الحسابات", to: "/accounting/accounts", icon: Wallet },
+      { label: "الفواتير والتحصيل", to: "/accounting/invoices" },
+      {
+        label: "المشتريات والمصروفات",
+        to: "/accounting/expenses",
+        // icon: ShoppingCart,
+      },
+      { label: "البنوك والحسابات", to: "/accounting/banks" },
+      {
+        label: "القيود المحاسبية",
+        to: "/accounting/journal-entries",
+        // icon: BookOpen,
+      },
+      { label: "التقارير المالية", to: "/accounting/reports"},
+      {
+        label: "إعدادات المحاسبة",
+        to: "/accounting/settings",
+        // icon: SlidersHorizontal,
+      },
     ],
   },
   {
