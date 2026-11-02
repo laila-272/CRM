@@ -25,8 +25,8 @@ const groups = [
     title: "لوحة التحكم",
     icon: LayoutDashboard,
     items: [
-      { label: "نظرة عامة", to: "#" },
-      { label: "المهام", to: "#" },
+      { label: "نظرة عامة", to: "/dashboard" },
+      // { label: "المهام", to: "#" },
     ],
   },
   {

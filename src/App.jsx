@@ -47,7 +47,7 @@ import Orders from "./Components/SalesPages/Orders.jsx";
 import SalesOrders from "./Components/SalesPages/Salesorders.jsx";
 import SalesReports from "./Components/SalesPages/Salesreports.jsx";
 import SalesSettings from "./Components/SalesPages/Salessettings.jsx";
-
+import Dashboard from "./Components/Dashboard/Dashboard.jsx";
 import Accounts from "./Components/AccountingPages/Accounts.jsx";
 import Invoices from "./Components/AccountingPages/Invoices.jsx";
 import Expenses from "./Components/AccountingPages/Expenses.jsx";
@@ -150,6 +150,7 @@ const router = createBrowserRouter([
       { path: "accounting/journal-entries", element: <JournalEntries /> },
       { path: "accounting/reports", element: <FinancialReports /> },
       { path: "accounting/settings", element: <AccountingSettings /> },
+      { path: "dashboard", element: <Dashboard /> },
     ],
   },
 ]);
