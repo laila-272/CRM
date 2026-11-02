@@ -28,7 +28,7 @@ import {
   nextId,
   today,
   Ltr,
-} from "./Accountingui.jsx;";
+} from "./Accountingui.jsx";
 
 export const COA = {
   1102: "مصرف الراجحي — الحساب الجاري",

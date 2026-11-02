@@ -25,7 +25,7 @@ import {
   nextId,
   today,
   Ltr,
-} from "./Accountingui.jsx;";
+} from "./Accountingui.jsx";
 
 const SEED = [
   {

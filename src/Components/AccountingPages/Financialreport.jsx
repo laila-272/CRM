@@ -19,7 +19,7 @@ import {
   num,
   fmtDate,
   today,
-} from "./Accountingui.jsx;";
+} from "./Accountingui.jsx";
 
 const MONTHS = ["مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر"];
 const REV = [1257000, 1470000, 1285000, 1610000, 1723000, 1846300];
