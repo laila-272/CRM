@@ -28,7 +28,7 @@ import {
   nextId,
   today,
   Ltr,
-} from "./AccountingUI.jsx";
+} from "./Accountingui.jsx;";
 
 const REF = new Date("2026-10-31");
 const CATS = [

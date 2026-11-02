@@ -7,7 +7,7 @@ import {
   Toggle,
   inputCls,
   useToast,
-} from "./AccountingUI.jsx";
+} from "./Accountingui.jsx;";
 
 const KEY = "accounting-settings";
 const DEFAULTS = {
