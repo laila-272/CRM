@@ -36,10 +36,10 @@ import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
 import LoginPage from "./Components/AuthPages/Login.jsx";
 import Marketing from "./Components/Support/Marketing.jsx";
 import Support from "./Components/Support/Support.jsx";
-import StockMove from './Components/InventoryPages/StockMove.jsx';
-import Warehouses from './Components/InventoryPages/Warehouses';
-import StockAlerts from './Components/InventoryPages/Alerts.jsx';
-import SubTemplates from './Components/SettingsPages/SubscribtionTemplates.jsx';
+import StockMove from "./Components/InventoryPages/StockMove.jsx";
+import Warehouses from "./Components/InventoryPages/Warehouses";
+import StockAlerts from "./Components/InventoryPages/Alerts.jsx";
+import SubTemplates from "./Components/SettingsPages/SubscribtionTemplates.jsx";
 import SubsPlan from "./Components/SettingsPages/SubscribtionPlan.jsx";
 import UsersPermissions from "./Components/SettingsPages/UsersPermissions.jsx";
 import GeneralSettings from "./Components/SettingsPages/Settings.jsx";
@@ -55,67 +55,37 @@ import Banks from "./Components/AccountingPages/Banks.jsx";
 import JournalEntries from "./Components/AccountingPages/Journalentries.jsx";
 import FinancialReports from "./Components/AccountingPages/Financialreport.jsx";
 import AccountingSettings from "./Components/AccountingPages/Accountingsettings.jsx";
+import Employees from "./Components/HRPages/Employees.jsx";
+import EmployeeDetails from "./Components/HRPages/Employeedetails.jsx";
+import Recruitment from "./Components/HRPages/Recruitment.jsx";
+import Performance from "./Components/HRPages/Performance.jsx";
+import EmployeeReports from "./Components/HRPages/Employeereports.jsx";
+import Attendance from "./Components/HRPages/Attendance.jsx";
+import Payroll from "./Components/HRPages/Payroll.jsx";
+import SalarySlip from "./Components/HRPages/Salaryslip.jsx";
+import EmployeeAffairs from "./Components/HRPages/Employeeaffairs.jsx";
+import Announcements from "./Components/HRPages/Announcements.jsx";
+import Documents from "./Components/HRPages/Documents.jsx";
+import HRSettings from "./Components/HRPages/Hrsettings.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
     children: [
-      {
-        index: true,
-        element: <Navigate to="/potential-clients" replace />,
-      },
-      {
-        path: "potential-clients",
-        element: <PotentialClients />,
-      },
-      {
-        path: "customer-details/:id",
-        element: <CustomerDetails />,
-      },
-      {
-        path: "deals",
-        element: <Deals />,
-      },
-      {
-        path: "deals/:id",
-        element: <DealDetails />,
-      },
-      {
-        path: "contracts",
-        element: <Contracts />,
-      },
-      {
-        path: "contracts/:id",
-        element: <Contractdetails />,
-      },
-      {
-        path: "brokers",
-        element: <Brokers />,
-      },
-      {
-        path: "commissions",
-        element: <Commissions />,
-      },
-      {
-        path: "tasks",
-        element: <Tasks />,
-      },
-      {
-        path: "reports",
-        element: <Reports />,
-      },
-      {
-        path: "calender",
-        element: <Calendar />,
-      },
-      {
-        path: "forms",
-        element: <FormBuilder />,
-      },
-      {
-        path: "settings",
-        element: <Settings />,
-      },
+      { index: true, element: <Navigate to="/potential-clients" replace /> },
+      { path: "potential-clients", element: <PotentialClients /> },
+      { path: "customer-details/:id", element: <CustomerDetails /> },
+      { path: "deals", element: <Deals /> },
+      { path: "deals/:id", element: <DealDetails /> },
+      { path: "contracts", element: <Contracts /> },
+      { path: "contracts/:id", element: <Contractdetails /> },
+      { path: "brokers", element: <Brokers /> },
+      { path: "commissions", element: <Commissions /> },
+      { path: "tasks", element: <Tasks /> },
+      { path: "reports", element: <Reports /> },
+      { path: "calender", element: <Calendar /> },
+      { path: "forms", element: <FormBuilder /> },
+      { path: "settings", element: <Settings /> },
       { path: "reservations", element: <Reservations /> },
       { path: "appointments", element: <Appointments /> },
       { path: "resources", element: <Resources /> },
@@ -128,7 +98,6 @@ const router = createBrowserRouter([
       { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <ProjectDetails /> },
       { path: "execution", element: <Execution /> },
-
       { path: "projects-settings", element: <ProjectSettings /> },
       { path: "marketing", element: <Marketing /> },
       { path: "support", element: <Support /> },
@@ -151,6 +120,18 @@ const router = createBrowserRouter([
       { path: "accounting/reports", element: <FinancialReports /> },
       { path: "accounting/settings", element: <AccountingSettings /> },
       { path: "dashboard", element: <Dashboard /> },
+      { path: "employees", element: <Employees /> },
+      { path: "employees/:id", element: <EmployeeDetails /> },
+      { path: "recruitment", element: <Recruitment /> },
+      { path: "performance", element: <Performance /> },
+      { path: "employee-reports", element: <EmployeeReports /> },
+      { path: "attendance", element: <Attendance /> },
+      { path: "payroll", element: <Payroll /> },
+      { path: "salaryslips", element: <SalarySlip /> },
+      { path: "employee-affairs", element: <EmployeeAffairs /> },
+      { path: "announcements", element: <Announcements /> },
+      { path: "documents", element: <Documents /> },
+      { path: "hr-settings", element: <HRSettings /> },
     ],
   },
 ]);

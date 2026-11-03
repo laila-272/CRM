@@ -140,7 +140,7 @@ const groups = [
         to: "/accounting/journal-entries",
         // icon: BookOpen,
       },
-      { label: "التقارير المالية", to: "/accounting/reports"},
+      { label: "التقارير المالية", to: "/accounting/reports" },
       {
         label: "إعدادات المحاسبة",
         to: "/accounting/settings",
@@ -151,7 +151,17 @@ const groups = [
   {
     title: "الموارد البشرية",
     icon: UserCog,
-    items: [{ label: "الموظفون", to: "#" }],
+    items: [
+      { label: "الموظفون", to: "/employees" },
+      { label: "الحضور والإجازات", to: "/attendance" },
+      { label: "التوظيف", to: "/recruitment" },
+      { label: "الرواتب", to: "/payroll" },
+      { label: "الأداء والتطوير", to: "/performance" },
+      { label: "شؤون الموظفين", to: "/employee-affairs" },
+      { label: "الإعلانات والمستندات", to: "/announcements" },
+      { label: "التقارير", to: "/employee-reports" },
+      { label: "الإعدادات", to: "/hr-settings" },
+    ],
   },
 ];
 
@@ -171,52 +181,79 @@ function ItemIcon({ icon: Icon }) {
   );
 }
 
+
 function Group({ g }) {
   const Icon = g.icon;
+  const [isOpen, setIsOpen] = useState(g.open ?? false);
+
   return (
-    <details open={g.open} className="group">
-      <summary className="list-none [&::-webkit-details-marker]:hidden flex items-center gap-2 px-2 h-8 rounded-lg cursor-pointer bg-white/[0.05] hover:bg-white/[0.08] text-[11.5px] font-semibold text-neutral-200 transition-colors">
-        <span className="w-5 h-5 shrink-0 rounded-md  grid place-items-center">
+    <div className="group">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full flex items-center gap-2 px-2 h-8 rounded-lg
+        cursor-pointer bg-white/[0.05] hover:bg-white/[0.08]
+        text-[11.5px] font-semibold text-neutral-200 transition-colors"
+      >
+        <span className="w-5 h-5 shrink-0 rounded-md grid place-items-center">
           <Icon size={12} className="text-[#FF7E52]" />
         </span>
-        <span className="flex-1 truncate">{g.title}</span>
+
+        <span className="flex-1 truncate text-right">{g.title}</span>
+
         <ChevronDown
           size={12}
-          className="text-neutral-500 transition-transform group-open:rotate-180"
+          className={`text-neutral-500 transition-transform duration-300 ease-in-out ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
         />
-      </summary>
+      </button>
 
-      <div className="mr-4 mt-1 mb-1.5 border-r border-white/10 pr-2 space-y-px">
-        {g.items.map((it) =>
-          it.to === "#" ? (
-            <span
-              key={it.label}
-              className="flex items-center gap-2 px-2 py-1 text-[11px] text-neutral-500 cursor-default"
-            >
-              <ItemIcon icon={it.icon} />
-              {it.label}
-            </span>
-          ) : (
-            <NavLink
-              key={it.label}
-              to={it.to}
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-2 py-1 rounded-md text-[11px] transition ${
-                  isActive
-                    ? "bg-[#D9D9D918] text-[#FF7E52] font-bold"
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
-                }`
-              }
-            >
-              <ItemIcon icon={it.icon} />
-              {it.label}
-            </NavLink>
-          ),
-        )}
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={`mr-4 mt-1 mb-1.5 border-r border-white/10 pr-2 space-y-px
+            transition-opacity duration-200 ${
+              isOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {g.items.map((it) =>
+              it.to === "#" ? (
+                <span
+                  key={it.label}
+                  className="flex items-center gap-2 px-2 py-1 text-[11px] text-neutral-500 cursor-default"
+                >
+                  <ItemIcon icon={it.icon} />
+                  {it.label}
+                </span>
+              ) : (
+                <NavLink
+                  key={it.label}
+                  to={it.to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-2 py-1 rounded-md text-[11px] transition-colors ${
+                      isActive
+                        ? "bg-[#D9D9D918] text-[#FF7E52] font-bold"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`
+                  }
+                >
+                  <ItemIcon icon={it.icon} />
+                  {it.label}
+                </NavLink>
+              ),
+            )}
+          </div>
+        </div>
       </div>
-    </details>
+    </div>
   );
 }
+
 
 /**
  * Props
