@@ -12,7 +12,7 @@ import {
   Ltr,
 } from "../AccountingPages/Accountingui.jsx";
 import { useEmployees, employeesApi, STATUS } from "../../data/Employeesstore.js";
-import { Avatar, EmployeeFormModal, dmy } from "./HRShared.jsx";
+import { Avatar, EmployeeFormModal, dmy } from "./Hrshared.jsx";
 
 const TABS = [
   ["general", "بيانات عامة"],

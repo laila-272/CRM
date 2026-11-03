@@ -27,7 +27,7 @@ import {
 import { Avatar } from "./Hrshared.jsx";
 import { KpiCard } from "./Hrwidgets.jsx";
 import { Badge, useToast } from "./Hrextras.jsx";
-import SalaryModal from "./SalaryModal.jsx";
+import SalaryModal from "./Salarymodal.jsx";
 
 const PAY = {
   paid: { label: "مصروف", cls: "bg-emerald-50 text-emerald-600" },
