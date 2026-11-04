@@ -161,7 +161,7 @@ export default function UsersPermissions() {
         </button>
       </PageHeader>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 mt-2">
         <StatCard
           icon={Users}
           label="المستخدمون"
@@ -176,7 +176,7 @@ export default function UsersPermissions() {
         />
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] mt-4">
         <div className={`${card} overflow-hidden`}>
           <div className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div>

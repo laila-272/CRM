@@ -240,7 +240,31 @@ export default function EmployeeReports() {
       </PageHeader>
 
       {/* period tabs + search */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:w-[250px]">
+          <Search
+            size={12}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"
+          />
+          <input
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+            placeholder="ابحث عن تقرير..."
+            className="h-8 w-full rounded-full border border-line bg-white pl-8 pr-8 text-[11px] outline-none transition-colors focus:border-neutral-400"
+          />
+          {q && (
+            <button
+              onClick={() => setQ("")}
+              aria-label="مسح"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-ink"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {Object.entries(PERIODS).map(([k, v]) => (
             <Chip key={k} active={period === k} onClick={() => setPeriod(k)}>
@@ -265,30 +289,6 @@ export default function EmployeeReports() {
                 className="h-7 rounded-full border border-line bg-white px-2.5 outline-none focus:border-neutral-400"
               />
             </div>
-          )}
-        </div>
-        <div className="relative w-full sm:w-[250px]">
-          <Search
-            size={12}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400"
-          />
-          <input
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
-            }}
-            placeholder="ابحث عن تقرير..."
-            className="h-8 w-full rounded-full border border-line bg-white pl-8 pr-8 text-[11px] outline-none transition-colors focus:border-neutral-400"
-          />
-          {q && (
-            <button
-              onClick={() => setQ("")}
-              aria-label="مسح"
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-ink"
-            >
-              <X size={12} />
-            </button>
           )}
         </div>
       </div>

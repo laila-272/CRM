@@ -203,7 +203,7 @@ export default function Employees() {
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox
-          className="min-w-[240px] flex-1"
+          className="relative w-full sm:w-[250px]"
           value={q}
           onChange={(v) => {
             setQ(v);

@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { getDeals, STAGES } from "../../data/deals.js";
+import KanbanColumn from "./Kanbancolumn.jsx";
 
 const STATUS_CLS = {
   نشطة: "bg-green-50 text-green-600",
@@ -41,7 +42,7 @@ function DealCard({ d }) {
   return (
     <Link
       to={`/deals/${d.id}`}
-      className="block bg-white border border-line rounded-xl p-3 shadow-sm hover:border-orange-300 transition-colors"
+      className="block bg-white border border-line rounded-xl p-3 shadow-sm transition-colors hover:border-neutral-300"
     >
       <div className="flex items-center justify-between">
         <span
@@ -229,31 +230,26 @@ export default function Deals() {
       </div>
 
       {/* Board */}
-      <div className="mt-5 overflow-x-auto pb-2">
+      <div className="mt-4 overflow-x-auto pb-2">
         <div className="grid grid-flow-col auto-cols-[minmax(190px,1fr)] gap-3 min-w-[980px] lg:min-w-0 lg:grid-flow-row lg:grid-cols-5">
           {STAGES.map((name, i) => {
             const col = list.filter((d) => d.stage === i);
             return (
-              <div key={name} className="min-w-0">
-                <div className="flex items-center justify-between px-0.5 pb-2">
-                  <span className="text-[11.5px] font-bold text-ink">
-                    {name}
-                  </span>
-                  <span className="text-[9.5px] bg-neutral-100 text-neutral-500 rounded-full px-2 py-0.5">
-                    {col.length} عملاء
-                  </span>
-                </div>
-                <div className="space-y-2.5">
-                  {col.map((d) => (
-                    <DealCard key={d.id} d={d} />
-                  ))}
-                  {!col.length && (
-                    <div className="border border-dashed border-line rounded-xl p-4 text-center text-[10.5px] text-neutral-400">
-                      لا توجد صفقات
-                    </div>
-                  )}
-                </div>
-              </div>
+              <KanbanColumn
+                key={name}
+                title={name}
+                count={`${col.length} عملاء`}
+                itemCount={col.length}
+              >
+                {col.map((d) => (
+                  <DealCard key={d.id} d={d} />
+                ))}
+                {!col.length && (
+                  <div className="border border-dashed border-neutral-300 rounded-xl p-4 text-center text-[10.5px] text-neutral-400">
+                    لا توجد صفقات
+                  </div>
+                )}
+              </KanbanColumn>
             );
           })}
         </div>

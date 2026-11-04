@@ -26,6 +26,10 @@ import ResourceProfile from "./Components/Bookings/Resourceprofile.jsx";
 import Resources from "./Components/Bookings/Resources.jsx";
 import SchedulingSettings from "./Components/Bookings/Schedulingsettings.jsx";
 import ReservationsDetails from "./Components/Bookings/ReservationsDetails.jsx";
+
+import AuthLayout from "./Components/AuthPages/Authlayout.jsx";
+import Register from "./Components/AuthPages/Register.jsx";
+import Login from "./Components/AuthPages/Login.jsx";
 import Products from "./Components/InventoryPages/Products.jsx";
 import Suppliers from "./Components/InventoryPages/Suppliers.jsx";
 import Inventory from "./Components/InventoryPages/Inventory.jsx";
@@ -33,7 +37,7 @@ import Projects from "./Components/ProjectsPages/Projects.jsx";
 import ProjectDetails from "./Components/ProjectsPages/ProjectDetails.jsx";
 import Execution from "./Components/ProjectsPages/Execution.jsx";
 import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
-import LoginPage from "./Components/AuthPages/Login.jsx";
+
 import Marketing from "./Components/Support/Marketing.jsx";
 import Support from "./Components/Support/Support.jsx";
 import StockMove from "./Components/InventoryPages/StockMove.jsx";
@@ -67,7 +71,14 @@ import EmployeeAffairs from "./Components/HRPages/Employeeaffairs.jsx";
 import Announcements from "./Components/HRPages/Announcements.jsx";
 import Documents from "./Components/HRPages/Documents.jsx";
 import HRSettings from "./Components/HRPages/Hrsettings.jsx";
+import Contacts from "./Components/CRMPages/Contacts.jsx";
+import ContactDetails from "./Components/CRMPages/Contactdetails.jsx";
 const router = createBrowserRouter([
+    { element: <AuthLayout />, children: [
+       { index: true, element: <Login /> },
+       { path: 'login', element: <Login  /> },
+       { path: 'register', element: <Register  /> },
+   ]},
   {
     path: "/",
     element: <Layout />,
@@ -132,6 +143,8 @@ const router = createBrowserRouter([
       { path: "announcements", element: <Announcements /> },
       { path: "documents", element: <Documents /> },
       { path: "hr-settings", element: <HRSettings /> },
+      { path: "contacts", element: <Contacts /> },
+      { path: "contacts/:id", element: <ContactDetails /> },
     ],
   },
 ]);
