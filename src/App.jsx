@@ -78,18 +78,10 @@ import TeamRoles from "./Components/SettingsPages/Teamroles.jsx";
 import RoleMembers from "./Components/SettingsPages/Rolemembers.jsx";
 const router = createBrowserRouter([
   {
-    element: <AuthLayout />,
-    children: [
-      { index: true, element: <Login /> },
-      { path: "login", element: <Login /> },
-      { path: "register", element: <Register /> },
-    ],
-  },
-  {
     path: "/",
     element: <Layout />,
     children: [
-      { index: true, element: <Navigate to="/potential-clients" replace /> },
+      { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "potential-clients", element: <PotentialClients /> },
       { path: "customer-details/:id", element: <CustomerDetails /> },
       { path: "deals", element: <Deals /> },
@@ -162,6 +154,14 @@ const router = createBrowserRouter([
       { path: "contacts", element: <Contacts /> },
       { path: "contacts/:id", element: <ContactDetails /> },
       { path: "archive", element: <Archive /> },
+    ],
+  },
+  {
+    element: <AuthLayout />,
+    children: [
+      { index: true, element: <Login /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
     ],
   },
 ]);
