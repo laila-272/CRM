@@ -22,14 +22,6 @@ import {
 
 const groups = [
   {
-    title: "لوحة التحكم",
-    icon: LayoutDashboard,
-    items: [
-      { label: "نظرة عامة", to: "/dashboard" },
-      // { label: "المهام", to: "#" },
-    ],
-  },
-  {
     title: "إدارة علاقات العملاء (CRM)",
     icon: Users,
     open: false,
@@ -47,7 +39,6 @@ const groups = [
         icon: Handshake,
       },
       { label: "العمولات", to: "/commissions", icon: FileText },
-
       {
         label: " الوسطاء والشركاء",
         to: "/brokers",
@@ -57,7 +48,6 @@ const groups = [
       { label: "الاجتماعات والتقويم", to: "/calender", icon: FileText },
       { label: "منشئ النماذج", to: "/forms", icon: FileText },
       { label: "التقارير", to: "/reports", icon: FileText },
-
       { label: "اعدادات ال CRM", to: "/settings", icon: FileText },
     ],
   },
@@ -68,7 +58,6 @@ const groups = [
       { label: "الحجوزات", to: "/reservations" },
       { label: "المواعيد", to: "/appointments" },
       { label: "الموارد", to: "/resources" },
-      // { label: "التقارير", to: "#" },
       { label: "الاعدادات", to: "/scheduling-settings" },
     ],
   },
@@ -107,7 +96,7 @@ const groups = [
     icon: Settings,
     items: [
       { label: "الإعدادات العامة", to: "/general-settings" },
-      { label: "المستخدمون والصلاحيات ", to: "/users-permissions" },
+      { label: "الفرق والصلاحيات ", to: "/roles" },
       { label: "قوالب الإشعارات", to: "/subscriptions-templates" },
       { label: "خطة الاشتراك", to: "/subscription-plans" },
     ],
@@ -122,7 +111,6 @@ const groups = [
       { label: "إعدادات المبيعات", to: "/sales-settings" },
     ],
   },
-
   {
     title: "المحاسبة",
     icon: Wallet,
@@ -132,19 +120,16 @@ const groups = [
       {
         label: "المشتريات والمصروفات",
         to: "/accounting/expenses",
-        // icon: ShoppingCart,
       },
       { label: "البنوك والحسابات", to: "/accounting/banks" },
       {
         label: "القيود المحاسبية",
         to: "/accounting/journal-entries",
-        // icon: BookOpen,
       },
       { label: "التقارير المالية", to: "/accounting/reports" },
       {
         label: "إعدادات المحاسبة",
         to: "/accounting/settings",
-        // icon: SlidersHorizontal,
       },
     ],
   },
@@ -181,6 +166,30 @@ function ItemIcon({ icon: Icon }) {
   );
 }
 
+// Direct sidebar links without dropdown
+function DirectLink({ icon: Icon, label, to, onClose }) {
+  return (
+    <NavLink
+      to={to}
+      onClick={onClose}
+      end
+      className={({ isActive }) =>
+        `flex items-center gap-2 px-2 h-8 rounded-lg text-[11.5px]
+        font-semibold transition-colors ${
+          isActive
+            ? "bg-[#D9D9D918] text-[#FF7E52]"
+            : " text-neutral-200 hover:bg-white/[0.08]"
+        }`
+      }
+    >
+      <span className="w-5 h-5 shrink-0 rounded-md grid place-items-center">
+        <Icon size={12} className="text-[#FF7E52]" />
+      </span>
+
+      <span className="flex-1 truncate text-right">{label}</span>
+    </NavLink>
+  );
+}
 
 function Group({ g }) {
   const Icon = g.icon;
@@ -254,14 +263,6 @@ function Group({ g }) {
   );
 }
 
-
-/**
- * Props
- * - open / onClose: unchanged mobile drawer behavior
- * - logoSrc: optional path to your existing logo asset. If omitted, the
- *   original Building2 badge + company name block is kept.
- * - onTabChange: optional callback for the segmented control
- */
 export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
   const [tab, setTab] = useState("favorites");
 
@@ -278,6 +279,7 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
           onClick={onClose}
         />
       )}
+
       <aside
         dir="rtl"
         className={`fixed top-0 bottom-0 right-0 z-40 w-[232px] bg-side text-white flex flex-col border-l border-white/10 transition-transform
@@ -292,6 +294,7 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
               <Building2 size={15} />
             </span>
           )}
+
           <div className="leading-tight flex-1 min-w-0">
             <div className="text-[13px] font-extrabold truncate">
               اسم الشركة
@@ -300,6 +303,7 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
               نظام إدارة العقارات
             </div>
           </div>
+
           <button
             className="lg:hidden text-neutral-400"
             onClick={onClose}
@@ -333,12 +337,14 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
           <div className="pt-1 text-[9.5px] text-neutral-500 px-1">
             المفضلة والأخيرة
           </div>
+
           <div
             role="tablist"
             className="grid grid-cols-2 gap-0.5 rounded-full border border-white/10 p-0.5"
           >
             {TABS.map(({ key, label }) => {
               const active = tab === key;
+
               return (
                 <button
                   key={key}
@@ -358,11 +364,27 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
           </div>
         </div>
 
-        {/* Navigation (scrolls independently) */}
+        {/* Navigation */}
         <nav
           className="flex-1 overflow-y-auto px-3 pt-1 space-y-1.5 pb-3"
-          onClick={(e) => e.target.closest("a") && onClose()}
+          onClick={(e) => e.target.closest("a") && onClose?.()}
         >
+          {/* Direct links */}
+          <DirectLink
+            icon={LayoutDashboard}
+            label="لوحة التحكم"
+            to="/dashboard"
+            onClose={onClose}
+          />
+
+          <DirectLink
+            icon={UserCog}
+            label="الأرشيف"
+            to="/archive"
+            onClose={onClose}
+          />
+
+          {/* Dropdown groups */}
           {groups.map((g) => (
             <Group key={g.title} g={g} />
           ))}
@@ -373,6 +395,7 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
           <span className="w-7 h-7 rounded-full bg-neutral-700 grid place-items-center text-[11px] font-bold">
             م
           </span>
+
           <div className="leading-tight">
             <div className="text-[11.5px] font-semibold">محمد العمري</div>
             <div className="text-[9.5px] text-neutral-500">المدير العام</div>

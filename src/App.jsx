@@ -73,12 +73,18 @@ import Documents from "./Components/HRPages/Documents.jsx";
 import HRSettings from "./Components/HRPages/Hrsettings.jsx";
 import Contacts from "./Components/CRMPages/Contacts.jsx";
 import ContactDetails from "./Components/CRMPages/Contactdetails.jsx";
+import Archive from "./Components/Archive/Archive.jsx";
+import TeamRoles from "./Components/SettingsPages/Teamroles.jsx";
+import RoleMembers from "./Components/SettingsPages/Rolemembers.jsx";
 const router = createBrowserRouter([
-    { element: <AuthLayout />, children: [
-       { index: true, element: <Login /> },
-       { path: 'login', element: <Login  /> },
-       { path: 'register', element: <Register  /> },
-   ]},
+  {
+    element: <AuthLayout />,
+    children: [
+      { index: true, element: <Login /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
+    ],
+  },
   {
     path: "/",
     element: <Layout />,
@@ -117,7 +123,17 @@ const router = createBrowserRouter([
       { path: "stock-alerts", element: <StockAlerts /> },
       { path: "subscriptions-templates", element: <SubTemplates /> },
       { path: "subscription-plans", element: <SubsPlan /> },
-      { path: "users-permissions", element: <UsersPermissions /> },
+      { path: "roles", element: <TeamRoles /> },
+
+      {
+        path: "roles/:roleId/members",
+        element: <RoleMembers />,
+      },
+
+      {
+        path: "roles/:roleId/permissions",
+        element: <UsersPermissions />,
+      },
       { path: "general-settings", element: <GeneralSettings /> },
       { path: "orders", element: <Orders /> },
       { path: "sales-orders", element: <SalesOrders /> },
@@ -145,6 +161,7 @@ const router = createBrowserRouter([
       { path: "hr-settings", element: <HRSettings /> },
       { path: "contacts", element: <Contacts /> },
       { path: "contacts/:id", element: <ContactDetails /> },
+      { path: "archive", element: <Archive /> },
     ],
   },
 ]);
