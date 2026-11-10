@@ -24,26 +24,13 @@ const groups = [
   {
     title: "إدارة علاقات العملاء (CRM)",
     icon: Users,
-    open: false,
     items: [
       { label: "العملاء المحتملون", to: "/potential-clients", icon: Users },
-      {
-        label: "جهات الاتصال و العملاء",
-        to: "/contacts",
-        icon: Users,
-      },
+      { label: "جهات الاتصال و العملاء", to: "/contacts", icon: Users },
       { label: "الصفقات", to: "/deals", icon: Handshake },
-      {
-        label: "العقود و عروض الاسعار ",
-        to: "/contracts",
-        icon: Handshake,
-      },
+      { label: "العقود و عروض الاسعار", to: "/contracts", icon: Handshake },
       { label: "العمولات", to: "/commissions", icon: FileText },
-      {
-        label: " الوسطاء والشركاء",
-        to: "/brokers",
-        icon: Handshake,
-      },
+      { label: "الوسطاء والشركاء", to: "/brokers", icon: Handshake },
       { label: "المتابعات و المهام", to: "/tasks", icon: CalendarCheck },
       { label: "الاجتماعات والتقويم", to: "/calender", icon: FileText },
       { label: "منشئ النماذج", to: "/forms", icon: FileText },
@@ -74,14 +61,13 @@ const groups = [
     title: "صندوق الوارد",
     icon: LifeBuoy,
     items: [
-      { label: " الدعم وخدمة العملاء", to: "/support" },
+      { label: "الدعم وخدمة العملاء", to: "/support" },
       { label: "التسويق", to: "/marketing" },
     ],
   },
   {
     title: "المخزون",
     icon: Users,
-    open: false,
     items: [
       { label: "المنتجات", to: "/products", icon: Handshake },
       { label: "حركة المخزون", to: "/stockmovements", icon: Handshake },
@@ -96,7 +82,7 @@ const groups = [
     icon: Settings,
     items: [
       { label: "الإعدادات العامة", to: "/general-settings" },
-      { label: "الفرق والصلاحيات ", to: "/roles" },
+      { label: "الفرق والصلاحيات", to: "/roles" },
       { label: "قوالب الإشعارات", to: "/subscriptions-templates" },
       { label: "خطة الاشتراك", to: "/subscription-plans" },
     ],
@@ -105,9 +91,9 @@ const groups = [
     title: "المبيعات",
     icon: Wallet,
     items: [
-      { label: "الطلبات  ", to: "/orders" },
+      { label: "الطلبات", to: "/orders" },
       { label: "أوامر البيع", to: "/sales-orders" },
-      { label: " تقارير ", to: "/sales-reports" },
+      { label: "تقارير", to: "/sales-reports" },
       { label: "إعدادات المبيعات", to: "/sales-settings" },
     ],
   },
@@ -117,20 +103,11 @@ const groups = [
     items: [
       { label: "الحسابات", to: "/accounting/accounts", icon: Wallet },
       { label: "الفواتير والتحصيل", to: "/accounting/invoices" },
-      {
-        label: "المشتريات والمصروفات",
-        to: "/accounting/expenses",
-      },
+      { label: "المشتريات والمصروفات", to: "/accounting/expenses" },
       { label: "البنوك والحسابات", to: "/accounting/banks" },
-      {
-        label: "القيود المحاسبية",
-        to: "/accounting/journal-entries",
-      },
+      { label: "القيود المحاسبية", to: "/accounting/journal-entries" },
       { label: "التقارير المالية", to: "/accounting/reports" },
-      {
-        label: "إعدادات المحاسبة",
-        to: "/accounting/settings",
-      },
+      { label: "إعدادات المحاسبة", to: "/accounting/settings" },
     ],
   },
   {
@@ -178,7 +155,7 @@ function DirectLink({ icon: Icon, label, to, onClose }) {
         font-semibold transition-colors ${
           isActive
             ? "bg-[#D9D9D918] text-[#FF7E52]"
-            : " text-neutral-200 hover:bg-white/[0.08]"
+            : "text-neutral-200 hover:bg-white/[0.08]"
         }`
       }
     >
@@ -191,15 +168,16 @@ function DirectLink({ icon: Icon, label, to, onClose }) {
   );
 }
 
-function Group({ g }) {
+// Only one dropdown can be open at a time
+function Group({ g, isOpen, onToggle }) {
   const Icon = g.icon;
-  const [isOpen, setIsOpen] = useState(g.open ?? false);
 
   return (
     <div className="group">
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={onToggle}
+        aria-expanded={isOpen}
         className="w-full flex items-center gap-2 px-2 h-8 rounded-lg
         cursor-pointer bg-white/[0.05] hover:bg-white/[0.08]
         text-[11.5px] font-semibold text-neutral-200 transition-colors"
@@ -266,9 +244,16 @@ function Group({ g }) {
 export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
   const [tab, setTab] = useState("favorites");
 
+  // Stores the currently opened dropdown
+  const [openGroup, setOpenGroup] = useState(null);
+
   const changeTab = (key) => {
     setTab(key);
     onTabChange?.(key);
+  };
+
+  const toggleGroup = (title) => {
+    setOpenGroup((prev) => (prev === title ? null : title));
   };
 
   return (
@@ -369,7 +354,6 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
           className="flex-1 overflow-y-auto px-3 pt-1 space-y-1.5 pb-3"
           onClick={(e) => e.target.closest("a") && onClose?.()}
         >
-          {/* Direct links */}
           <DirectLink
             icon={LayoutDashboard}
             label="لوحة التحكم"
@@ -386,7 +370,12 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
 
           {/* Dropdown groups */}
           {groups.map((g) => (
-            <Group key={g.title} g={g} />
+            <Group
+              key={g.title}
+              g={g}
+              isOpen={openGroup === g.title}
+              onToggle={() => toggleGroup(g.title)}
+            />
           ))}
         </nav>
 

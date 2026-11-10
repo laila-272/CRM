@@ -143,7 +143,7 @@ export default function UsersPermissions() {
     return (
       <div dir="rtl" className={`${card} p-8 text-center`}>
         <p className="text-[13px] font-bold text-ink">الدور غير موجود</p>
-        <Link to="/team/roles" className={`${btnLight} mt-4`}>
+        <Link to="/roles" className={`${btnLight} mt-4`}>
           العودة إلى الأدوار <ArrowRight size={13} />
         </Link>
       </div>
@@ -202,11 +202,11 @@ function PermissionsEditor({ role }) {
           الرئيسية
         </Link>
         <span>›</span>
-        <Link to="/team/roles" className="hover:text-ink">
+        <Link to="/roles" className="hover:text-ink">
           الفريق
         </Link>
         <span>›</span>
-        <Link to={`/team/roles/${role.id}/members`} className="hover:text-ink">
+        <Link to={`/roles/${role.id}/members`} className="hover:text-ink">
           {role.name}
         </Link>
         <span>›</span>
@@ -218,7 +218,7 @@ function PermissionsEditor({ role }) {
           title="الصلاحيات"
           subtitle="تحكّم في ما يمكن لهذا الدور عرضه وتنفيذه داخل النظام"
         >
-          <Link to="/team/roles" className={btnLight}>
+          <Link to="/roles" className={btnLight}>
             العودة إلى الأدوار <ArrowRight size={13} />
           </Link>
         </PageHeader>

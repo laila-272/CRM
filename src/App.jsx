@@ -78,7 +78,7 @@ import TeamRoles from "./Components/SettingsPages/Teamroles.jsx";
 import RoleMembers from "./Components/SettingsPages/Rolemembers.jsx";
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/",  
     element: <Layout />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
