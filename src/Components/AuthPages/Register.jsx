@@ -1,59 +1,81 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Building2, Lock, Mail, Phone } from "lucide-react";
 import { useAuthLang } from "./Authlayout.jsx";
 import AuthInput from "./AuthInput.jsx";
 import SubmitButton from "./SubmitButton.jsx";
+import { registerUser } from "../../Services/authService.js";
 
-/**
- * Pass `onSubmit({ name, phone, email, password })` (async) to connect your existing
- * registration logic. Without it the form validates and reports "not connected".
- */
-export default function RegisterPage({ onSubmit }) {
+export default function RegisterPage() {
   const { t: all } = useAuthLang();
   const t = all.register;
+
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     const f = Object.fromEntries(new FormData(e.currentTarget));
+
     const next = {};
+
     if (!f.name?.trim()) next.name = t.required;
+
     if (!f.phone?.trim()) next.phone = t.required;
-    if (!f.password) next.password = t.required;
-    else if (f.password.length < 8) next.password = t.shortPassword;
-    if (f.confirm !== f.password) next.confirm = t.mismatch;
+
+    if (!f.password) {
+      next.password = t.required;
+    } else if (f.password.length < 8) {
+      next.password = t.shortPassword;
+    }
+
+    if (f.confirm !== f.password) {
+      next.confirm = t.mismatch;
+    }
+
     setErrors(next);
     setFormError("");
-    if (Object.keys(next).length) return;
-    if (!onSubmit) {
-      setFormError(t.notConnected);
-      return;
-    }
+
+    if (Object.keys(next).length > 0) return;
+
     setLoading(true);
+
     try {
-      await onSubmit({
-        name: f.name,
-        phone: f.phone,
-        email: f.email,
+      await registerUser({
+        name: f.name.trim(),
+        phone: f.phone.trim(),
+        email: f.email?.trim() || "",
         password: f.password,
+        password_confirmation: f.confirm,
       });
+
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setFormError(err?.message || String(err));
+      setFormError(
+        err.response?.data?.message ||
+          err.message ||
+          "Something went wrong. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  const pw = { showLabel: all.show, hideLabel: all.hide };
+  const pw = {
+    showLabel: all.show,
+    hideLabel: all.hide,
+  };
 
   return (
     <form onSubmit={handleSubmit} noValidate className="w-full">
       <h2 className="text-[21px] font-extrabold leading-tight tracking-[-0.01em] text-white sm:text-[24px]">
         {t.title}
       </h2>
+
       <p className="mt-1 text-[12px] leading-snug text-[#cfc5bd] sm:text-[12.5px]">
         {t.subtitle}
       </p>
@@ -70,6 +92,7 @@ export default function RegisterPage({ onSubmit }) {
           error={errors.name}
           autoFocus
         />
+
         <AuthInput
           id="phone"
           name="phone"
@@ -81,6 +104,7 @@ export default function RegisterPage({ onSubmit }) {
           autoComplete="tel"
           error={errors.phone}
         />
+
         <AuthInput
           id="email"
           name="email"
@@ -106,6 +130,7 @@ export default function RegisterPage({ onSubmit }) {
             error={errors.password}
             {...pw}
           />
+
           <AuthInput
             id="confirm"
             name="confirm"

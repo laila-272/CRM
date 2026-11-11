@@ -3,6 +3,7 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
+
 import Layout from "./Components/Layout/Layout.jsx";
 import PotentialClients from "./Components/CRMPages/PotentialClients.jsx";
 import CustomerDetails from "./Components/CRMPages/CustomerDetails.jsx";
@@ -18,10 +19,9 @@ import Reports from "./Components/CRMPages/Reports.jsx";
 import Calendar from "./Components/CRMPages/Calender.jsx";
 import FormBuilder from "./Components/CRMPages/Formbuilder.jsx";
 import Settings from "./Components/CRMPages/Settings.jsx";
-import AppointmentModal from "./Components/Bookings/Appointmentmodal.jsx";
+
 import Reservations from "./Components/Bookings/Reservations.jsx";
 import Appointments from "./Components/Bookings/Appointments.jsx";
-import ResourceModal from "./Components/Bookings/Resourcemodal.jsx";
 import ResourceProfile from "./Components/Bookings/Resourceprofile.jsx";
 import Resources from "./Components/Bookings/Resources.jsx";
 import SchedulingSettings from "./Components/Bookings/Schedulingsettings.jsx";
@@ -30,9 +30,14 @@ import ReservationsDetails from "./Components/Bookings/ReservationsDetails.jsx";
 import AuthLayout from "./Components/AuthPages/Authlayout.jsx";
 import Register from "./Components/AuthPages/Register.jsx";
 import Login from "./Components/AuthPages/Login.jsx";
+
 import Products from "./Components/InventoryPages/Products.jsx";
 import Suppliers from "./Components/InventoryPages/Suppliers.jsx";
 import Inventory from "./Components/InventoryPages/Inventory.jsx";
+import StockMove from "./Components/InventoryPages/StockMove.jsx";
+import Warehouses from "./Components/InventoryPages/Warehouses";
+import StockAlerts from "./Components/InventoryPages/Alerts.jsx";
+
 import Projects from "./Components/ProjectsPages/Projects.jsx";
 import ProjectDetails from "./Components/ProjectsPages/ProjectDetails.jsx";
 import Execution from "./Components/ProjectsPages/Execution.jsx";
@@ -40,18 +45,21 @@ import ProjectSettings from "./Components/ProjectsPages/ProjectSettings.jsx";
 
 import Marketing from "./Components/Support/Marketing.jsx";
 import Support from "./Components/Support/Support.jsx";
-import StockMove from "./Components/InventoryPages/StockMove.jsx";
-import Warehouses from "./Components/InventoryPages/Warehouses";
-import StockAlerts from "./Components/InventoryPages/Alerts.jsx";
+
 import SubTemplates from "./Components/SettingsPages/SubscribtionTemplates.jsx";
 import SubsPlan from "./Components/SettingsPages/SubscribtionPlan.jsx";
 import UsersPermissions from "./Components/SettingsPages/UsersPermissions.jsx";
 import GeneralSettings from "./Components/SettingsPages/Settings.jsx";
+import TeamRoles from "./Components/SettingsPages/Teamroles.jsx";
+import RoleMembers from "./Components/SettingsPages/Rolemembers.jsx";
+
 import Orders from "./Components/SalesPages/Orders.jsx";
 import SalesOrders from "./Components/SalesPages/Salesorders.jsx";
 import SalesReports from "./Components/SalesPages/Salesreports.jsx";
 import SalesSettings from "./Components/SalesPages/Salessettings.jsx";
+
 import Dashboard from "./Components/Dashboard/Dashboard.jsx";
+
 import Accounts from "./Components/AccountingPages/Accounts.jsx";
 import Invoices from "./Components/AccountingPages/Invoices.jsx";
 import Expenses from "./Components/AccountingPages/Expenses.jsx";
@@ -59,6 +67,7 @@ import Banks from "./Components/AccountingPages/Banks.jsx";
 import JournalEntries from "./Components/AccountingPages/Journalentries.jsx";
 import FinancialReports from "./Components/AccountingPages/Financialreport.jsx";
 import AccountingSettings from "./Components/AccountingPages/Accountingsettings.jsx";
+
 import Employees from "./Components/HRPages/Employees.jsx";
 import EmployeeDetails from "./Components/HRPages/Employeedetails.jsx";
 import Recruitment from "./Components/HRPages/Recruitment.jsx";
@@ -71,17 +80,20 @@ import EmployeeAffairs from "./Components/HRPages/Employeeaffairs.jsx";
 import Announcements from "./Components/HRPages/Announcements.jsx";
 import Documents from "./Components/HRPages/Documents.jsx";
 import HRSettings from "./Components/HRPages/Hrsettings.jsx";
+
 import Contacts from "./Components/CRMPages/Contacts.jsx";
 import ContactDetails from "./Components/CRMPages/Contactdetails.jsx";
 import Archive from "./Components/Archive/Archive.jsx";
-import TeamRoles from "./Components/SettingsPages/Teamroles.jsx";
-import RoleMembers from "./Components/SettingsPages/Rolemembers.jsx";
+
 const router = createBrowserRouter([
   {
-    path: "/",  
+    path: "/",
     element: <Layout />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
+
+      { path: "dashboard", element: <Dashboard /> },
+
       { path: "potential-clients", element: <PotentialClients /> },
       { path: "customer-details/:id", element: <CustomerDetails /> },
       { path: "deals", element: <Deals /> },
@@ -95,42 +107,41 @@ const router = createBrowserRouter([
       { path: "calender", element: <Calendar /> },
       { path: "forms", element: <FormBuilder /> },
       { path: "settings", element: <Settings /> },
+
       { path: "reservations", element: <Reservations /> },
       { path: "appointments", element: <Appointments /> },
       { path: "resources", element: <Resources /> },
       { path: "resources/:id", element: <ResourceProfile /> },
       { path: "scheduling-settings", element: <SchedulingSettings /> },
       { path: "resDetails", element: <ReservationsDetails /> },
+
       { path: "products", element: <Products /> },
       { path: "suppliers", element: <Suppliers /> },
       { path: "inventory", element: <Inventory /> },
+      { path: "stockmovements", element: <StockMove /> },
+      { path: "warehouses", element: <Warehouses /> },
+      { path: "stock-alerts", element: <StockAlerts /> },
+
       { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <ProjectDetails /> },
       { path: "execution", element: <Execution /> },
       { path: "projects-settings", element: <ProjectSettings /> },
+
       { path: "marketing", element: <Marketing /> },
       { path: "support", element: <Support /> },
-      { path: "stockmovements", element: <StockMove /> },
-      { path: "warehouses", element: <Warehouses /> },
-      { path: "stock-alerts", element: <StockAlerts /> },
+
       { path: "subscriptions-templates", element: <SubTemplates /> },
       { path: "subscription-plans", element: <SubsPlan /> },
       { path: "roles", element: <TeamRoles /> },
-
-      {
-        path: "roles/:roleId/members",
-        element: <RoleMembers />,
-      },
-
-      {
-        path: "roles/:roleId/permissions",
-        element: <UsersPermissions />,
-      },
+      { path: "roles/:roleId/members", element: <RoleMembers /> },
+      { path: "roles/:roleId/permissions", element: <UsersPermissions /> },
       { path: "general-settings", element: <GeneralSettings /> },
+
       { path: "orders", element: <Orders /> },
       { path: "sales-orders", element: <SalesOrders /> },
       { path: "sales-reports", element: <SalesReports /> },
       { path: "sales-settings", element: <SalesSettings /> },
+
       { path: "accounting/accounts", element: <Accounts /> },
       { path: "accounting/invoices", element: <Invoices /> },
       { path: "accounting/expenses", element: <Expenses /> },
@@ -138,7 +149,7 @@ const router = createBrowserRouter([
       { path: "accounting/journal-entries", element: <JournalEntries /> },
       { path: "accounting/reports", element: <FinancialReports /> },
       { path: "accounting/settings", element: <AccountingSettings /> },
-      { path: "dashboard", element: <Dashboard /> },
+
       { path: "employees", element: <Employees /> },
       { path: "employees/:id", element: <EmployeeDetails /> },
       { path: "recruitment", element: <Recruitment /> },
@@ -151,15 +162,16 @@ const router = createBrowserRouter([
       { path: "announcements", element: <Announcements /> },
       { path: "documents", element: <Documents /> },
       { path: "hr-settings", element: <HRSettings /> },
+
       { path: "contacts", element: <Contacts /> },
       { path: "contacts/:id", element: <ContactDetails /> },
       { path: "archive", element: <Archive /> },
     ],
   },
+
   {
     element: <AuthLayout />,
     children: [
-      { index: true, element: <Login /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
     ],

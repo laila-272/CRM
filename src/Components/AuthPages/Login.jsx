@@ -1,39 +1,44 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Lock, Mail } from "lucide-react";
 import { useAuthLang } from "./Authlayout.jsx";
 import AuthInput from "./AuthInput.jsx";
 import SubmitButton from "./SubmitButton.jsx";
+import { loginUser } from "../../Services/authService.js";
 
-/**
- * Pass `onSubmit({ email, password, remember })` (async) to connect your existing
- * login logic. No endpoint is invented here: without a handler the form reports
- * that the service is not connected instead of faking a successful login.
- */
-export default function LoginPage({ onSubmit }) {
+export default function Login() {
   const { t: all } = useAuthLang();
   const t = all.login;
+
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     const f = new FormData(e.currentTarget);
+
     const values = {
       email: f.get("email"),
       password: f.get("password"),
       remember: f.get("remember") === "on",
     };
+
     setError("");
-    if (!onSubmit) {
-      setError(t.notConnected);
-      return;
-    }
     setLoading(true);
+
     try {
-      await onSubmit(values);
+      await loginUser(values);
+
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err?.message || String(err));
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Something went wrong. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -44,6 +49,7 @@ export default function LoginPage({ onSubmit }) {
       <h2 className="text-[26px] font-extrabold leading-8 tracking-[-0.01em] text-white">
         {t.title}
       </h2>
+
       <p className="mt-[10px] text-[13px] leading-[18px] text-[#cfc5bd]">
         {t.subtitle}
       </p>
@@ -58,6 +64,7 @@ export default function LoginPage({ onSubmit }) {
           icon={Mail}
           autoComplete="email"
         />
+
         <AuthInput
           id="password"
           name="password"
