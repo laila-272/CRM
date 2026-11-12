@@ -106,8 +106,13 @@ function RequireAuth({ children }) {
 // ------------------------------------
 
 function PermissionGuard({ children, permission, anyPermissions }) {
-  const { user, loadingPermissions, hasPermission, hasAnyPermission } =
-    useAuth();
+  const {
+    user,
+    loadingPermissions,
+    hasPermission,
+    hasAnyPermission,
+    permissionsError,
+  } = useAuth();
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -117,6 +122,20 @@ function PermissionGuard({ children, permission, anyPermissions }) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p>جاري تحميل الصلاحيات...</p>
+      </div>
+    );
+  }
+
+  // Fail closed if permissions could not be loaded
+  if (permissionsError) {
+    return (
+      <div
+        dir="rtl"
+        className="flex min-h-[70vh] items-center justify-center p-6 text-center"
+      >
+        <p className="text-red-600">
+          تعذر تحميل الصلاحيات. برجاء إعادة تسجيل الدخول.
+        </p>
       </div>
     );
   }
@@ -145,16 +164,92 @@ function PermissionGuard({ children, permission, anyPermissions }) {
   return children;
 }
 
-// Helper to protect a page with one permission
+// ------------------------------------
+// Permission Helpers
+// ------------------------------------
+
 function protect(element, permission) {
   return <PermissionGuard permission={permission}>{element}</PermissionGuard>;
 }
 
-// Helper to protect a page with any of multiple permissions
 function protectAny(element, permissions) {
   return (
     <PermissionGuard anyPermissions={permissions}>{element}</PermissionGuard>
   );
+}
+
+// ------------------------------------
+// Home Redirect
+// Redirect user to first accessible page
+// ------------------------------------
+
+function HomeRedirect() {
+  const { user, loadingPermissions, permissionsError, hasPermission } =
+    useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (loadingPermissions) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        جاري تحميل الصلاحيات...
+      </div>
+    );
+  }
+
+  if (permissionsError) {
+    return (
+      <div
+        dir="rtl"
+        className="flex min-h-screen items-center justify-center p-6 text-center"
+      >
+        <p className="text-red-600">
+          تعذر تحميل الصلاحيات. برجاء إعادة تسجيل الدخول.
+        </p>
+      </div>
+    );
+  }
+
+  // Pages ordered by priority
+  const availablePages = [
+    { permission: "dashboard.view", path: "/dashboard" },
+    { permission: "leads.view", path: "/potential-clients" },
+    { permission: "customers.view", path: "/contacts" },
+    { permission: "deals.view", path: "/deals" },
+    { permission: "contracts.view", path: "/contracts" },
+    { permission: "partners.view", path: "/brokers" },
+    { permission: "commissions.view", path: "/commissions" },
+    { permission: "tasks.view", path: "/tasks" },
+    { permission: "appointments.view", path: "/appointments" },
+    { permission: "vendors.view", path: "/suppliers" },
+    { permission: "team.view", path: "/roles" },
+    { permission: "invoices.view", path: "/accounting/invoices" },
+    { permission: "expenses.view", path: "/accounting/expenses" },
+    { permission: "company.settings.view", path: "/general-settings" },
+  ];
+
+  const firstAllowedPage = availablePages.find((page) =>
+    hasPermission(page.permission),
+  );
+
+  if (!firstAllowedPage) {
+    return (
+      <div
+        dir="rtl"
+        className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center"
+      >
+        <h2 className="text-xl font-bold">لا توجد صفحات متاحة</h2>
+
+        <p className="text-gray-500">
+          ليس لديك صلاحيات للدخول إلى أي صفحة. برجاء التواصل مع المسؤول.
+        </p>
+      </div>
+    );
+  }
+
+  return <Navigate to={firstAllowedPage.path} replace />;
 }
 
 // ------------------------------------
@@ -172,7 +267,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <HomeRedirect />,
       },
 
       // Dashboard
