@@ -19,35 +19,82 @@ import {
   Search,
   Circle,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const groups = [
   {
     title: "إدارة علاقات العملاء (CRM)",
     icon: Users,
     items: [
-      { label: "العملاء المحتملون", to: "/potential-clients", icon: Users },
-      { label: "جهات الاتصال و العملاء", to: "/contacts", icon: Users },
-      { label: "الصفقات", to: "/deals", icon: Handshake },
-      { label: "العقود و عروض الاسعار", to: "/contracts", icon: Handshake },
-      { label: "العمولات", to: "/commissions", icon: FileText },
-      { label: "الوسطاء والشركاء", to: "/brokers", icon: Handshake },
-      { label: "المتابعات و المهام", to: "/tasks", icon: CalendarCheck },
-      { label: "الاجتماعات والتقويم", to: "/calender", icon: FileText },
+      {
+        label: "العملاء المحتملون",
+        to: "/potential-clients",
+        icon: Users,
+        permission: "leads.view",
+      },
+      {
+        label: "جهات الاتصال و العملاء",
+        to: "/contacts",
+        icon: Users,
+        permission: "customers.view",
+      },
+      {
+        label: "الصفقات",
+        to: "/deals",
+        icon: Handshake,
+        permission: "deals.view",
+      },
+      {
+        label: "العقود و عروض الاسعار",
+        to: "/contracts",
+        icon: Handshake,
+        permission: "contracts.view",
+      },
+      {
+        label: "العمولات",
+        to: "/commissions",
+        icon: FileText,
+        permission: "commissions.view",
+      },
+      {
+        label: "الوسطاء والشركاء",
+        to: "/brokers",
+        icon: Handshake,
+        permission: "partners.view",
+      },
+      {
+        label: "المتابعات و المهام",
+        to: "/tasks",
+        icon: CalendarCheck,
+        permission: "tasks.view",
+      },
+      {
+        label: "الاجتماعات والتقويم",
+        to: "/calender",
+        icon: FileText,
+        permission: "appointments.view",
+      },
       { label: "منشئ النماذج", to: "/forms", icon: FileText },
       { label: "التقارير", to: "/reports", icon: FileText },
       { label: "اعدادات ال CRM", to: "/settings", icon: FileText },
     ],
   },
+
   {
     title: "المواعيد والحجوزات",
     icon: BarChart3,
     items: [
       { label: "الحجوزات", to: "/reservations" },
-      { label: "المواعيد", to: "/appointments" },
+      {
+        label: "المواعيد",
+        to: "/appointments",
+        permission: "appointments.view",
+      },
       { label: "الموارد", to: "/resources" },
       { label: "الاعدادات", to: "/scheduling-settings" },
     ],
   },
+
   {
     title: "المشاريع والتنفيذ",
     icon: Megaphone,
@@ -57,6 +104,7 @@ const groups = [
       { label: "الاعدادات", to: "/projects-settings" },
     ],
   },
+
   {
     title: "صندوق الوارد",
     icon: LifeBuoy,
@@ -65,6 +113,7 @@ const groups = [
       { label: "التسويق", to: "/marketing" },
     ],
   },
+
   {
     title: "المخزون",
     icon: Users,
@@ -72,21 +121,36 @@ const groups = [
       { label: "المنتجات", to: "/products", icon: Handshake },
       { label: "حركة المخزون", to: "/stockmovements", icon: Handshake },
       { label: "تنبيهات المخزون", to: "/stock-alerts", icon: Handshake },
-      { label: "الموردون والمشتريات", to: "/suppliers", icon: Handshake },
+      {
+        label: "الموردون والمشتريات",
+        to: "/suppliers",
+        icon: Handshake,
+        permission: "vendors.view",
+      },
       { label: "الجرد", to: "/inventory", icon: Handshake },
       { label: "المخازن", to: "/warehouses", icon: Handshake },
     ],
   },
+
   {
     title: "الإعدادات",
     icon: Settings,
     items: [
-      { label: "الإعدادات العامة", to: "/general-settings" },
-      { label: "الفرق والصلاحيات", to: "/roles" },
+      {
+        label: "الإعدادات العامة",
+        to: "/general-settings",
+        permission: "company.settings.view",
+      },
+      {
+        label: "الفرق والصلاحيات",
+        to: "/roles",
+        permission: "team.view",
+      },
       { label: "قوالب الإشعارات", to: "/subscriptions-templates" },
       { label: "خطة الاشتراك", to: "/subscription-plans" },
     ],
   },
+
   {
     title: "المبيعات",
     icon: Wallet,
@@ -97,19 +161,29 @@ const groups = [
       { label: "إعدادات المبيعات", to: "/sales-settings" },
     ],
   },
+
   {
     title: "المحاسبة",
     icon: Wallet,
     items: [
       { label: "الحسابات", to: "/accounting/accounts", icon: Wallet },
-      { label: "الفواتير والتحصيل", to: "/accounting/invoices" },
-      { label: "المشتريات والمصروفات", to: "/accounting/expenses" },
+      {
+        label: "الفواتير والتحصيل",
+        to: "/accounting/invoices",
+        permission: "invoices.view",
+      },
+      {
+        label: "المشتريات والمصروفات",
+        to: "/accounting/expenses",
+        permission: "expenses.view",
+      },
       { label: "البنوك والحسابات", to: "/accounting/banks" },
       { label: "القيود المحاسبية", to: "/accounting/journal-entries" },
       { label: "التقارير المالية", to: "/accounting/reports" },
       { label: "إعدادات المحاسبة", to: "/accounting/settings" },
     ],
   },
+
   {
     title: "الموارد البشرية",
     icon: UserCog,
@@ -132,6 +206,18 @@ const TABS = [
   { key: "favorites", label: "المفضلة" },
 ];
 
+const ARCHIVE_PERMISSIONS = [
+  "customer.trash",
+  "leads.trash",
+  "deal.trash",
+  "contracts.trash",
+  "tasks.trash",
+  "appointments.trash",
+  "invoices.trash",
+  "expenses.trash",
+  "vendors.trash",
+];
+
 function ItemIcon({ icon: Icon }) {
   return Icon ? (
     <Icon size={12} className="shrink-0 text-neutral-500" />
@@ -143,8 +229,13 @@ function ItemIcon({ icon: Icon }) {
   );
 }
 
-// Direct sidebar links without dropdown
-function DirectLink({ icon: Icon, label, to, onClose }) {
+function DirectLink({ icon: Icon, label, to, permission, onClose }) {
+  const { hasPermission } = useAuth();
+
+  if (permission && !hasPermission(permission)) {
+    return null;
+  }
+
   return (
     <NavLink
       to={to}
@@ -160,7 +251,7 @@ function DirectLink({ icon: Icon, label, to, onClose }) {
       }
     >
       <span className="w-5 h-5 shrink-0 rounded-md grid place-items-center">
-        <Icon size={12} className="text-[#FF7E52]" />
+        {Icon && <Icon size={12} className="text-[#FF7E52]" />}
       </span>
 
       <span className="flex-1 truncate text-right">{label}</span>
@@ -168,8 +259,7 @@ function DirectLink({ icon: Icon, label, to, onClose }) {
   );
 }
 
-// Only one dropdown can be open at a time
-function Group({ g, isOpen, onToggle }) {
+function Group({ g, isOpen, onToggle, onClose }) {
   const Icon = g.icon;
 
   return (
@@ -221,6 +311,7 @@ function Group({ g, isOpen, onToggle }) {
                 <NavLink
                   key={it.label}
                   to={it.to}
+                  onClick={onClose}
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-2 py-1 rounded-md text-[11px] transition-colors ${
                       isActive
@@ -242,10 +333,23 @@ function Group({ g, isOpen, onToggle }) {
 }
 
 export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
-  const [tab, setTab] = useState("favorites");
+  const { hasPermission, user } = useAuth();
 
-  // Stores the currently opened dropdown
+  const [tab, setTab] = useState("favorites");
   const [openGroup, setOpenGroup] = useState(null);
+
+  const visibleGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) => !item.permission || hasPermission(item.permission),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  const canViewArchive = ARCHIVE_PERMISSIONS.some((permission) =>
+    hasPermission(permission),
+  );
 
   const changeTab = (key) => {
     setTab(key);
@@ -270,7 +374,7 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
         className={`fixed top-0 bottom-0 right-0 z-40 w-[232px] bg-side text-white flex flex-col border-l border-white/10 transition-transform
         ${open ? "translate-x-0" : "translate-x-full"} lg:translate-x-0`}
       >
-        {/* Header: logo + company */}
+        {/* Header */}
         <div className="h-[54px] px-3 flex items-center gap-2 shrink-0">
           {logoSrc ? (
             <img src={logoSrc} alt="" className="h-7 w-auto" />
@@ -305,19 +409,22 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
               size={13}
               className="absolute top-1/2 -translate-y-1/2 left-3 text-neutral-500"
             />
+
             <input
               className="w-full h-8 rounded-full bg-transparent border border-white/15 pr-3 pl-8 text-[11px] text-white placeholder:text-neutral-500 outline-none focus:border-white/40 transition-colors"
               placeholder="بحث..."
             />
           </div>
 
-          <NavLink
-            to="/potential-clients?add=1"
-            onClick={onClose}
-            className="flex items-center justify-center gap-1.5 h-8 rounded-full border border-white/80 text-[11.5px] font-bold hover:bg-white/10 transition-colors"
-          >
-            إجراء سريع <Plus size={12} />
-          </NavLink>
+          {hasPermission("leads.create") && (
+            <NavLink
+              to="/potential-clients?add=1"
+              onClick={onClose}
+              className="flex items-center justify-center gap-1.5 h-8 rounded-full border border-white/80 text-[11.5px] font-bold hover:bg-white/10 transition-colors"
+            >
+              إجراء سريع <Plus size={12} />
+            </NavLink>
+          )}
 
           <div className="pt-1 text-[9.5px] text-neutral-500 px-1">
             المفضلة والأخيرة
@@ -350,31 +457,31 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
         </div>
 
         {/* Navigation */}
-        <nav
-          className="flex-1 overflow-y-auto px-3 pt-1 space-y-1.5 pb-3"
-          onClick={(e) => e.target.closest("a") && onClose?.()}
-        >
+        <nav className="flex-1 overflow-y-auto px-3 pt-1 space-y-1.5 pb-3">
           <DirectLink
             icon={LayoutDashboard}
             label="لوحة التحكم"
             to="/dashboard"
+            permission="dashboard.view"
             onClose={onClose}
           />
 
-          <DirectLink
-            icon={UserCog}
-            label="الأرشيف"
-            to="/archive"
-            onClose={onClose}
-          />
+          {canViewArchive && (
+            <DirectLink
+              icon={UserCog}
+              label="الأرشيف"
+              to="/archive"
+              onClose={onClose}
+            />
+          )}
 
-          {/* Dropdown groups */}
-          {groups.map((g) => (
+          {visibleGroups.map((g) => (
             <Group
               key={g.title}
               g={g}
               isOpen={openGroup === g.title}
               onToggle={() => toggleGroup(g.title)}
+              onClose={onClose}
             />
           ))}
         </nav>
@@ -382,12 +489,16 @@ export default function Sidebar({ open, onClose, logoSrc, onTabChange }) {
         {/* User */}
         <div className="px-3 py-2.5 border-t border-white/10 flex items-center gap-2 shrink-0">
           <span className="w-7 h-7 rounded-full bg-neutral-700 grid place-items-center text-[11px] font-bold">
-            م
+            {user?.name?.charAt(0) || "م"}
           </span>
 
-          <div className="leading-tight">
-            <div className="text-[11.5px] font-semibold">محمد العمري</div>
-            <div className="text-[9.5px] text-neutral-500">المدير العام</div>
+          <div className="leading-tight min-w-0">
+            <div className="text-[11.5px] font-semibold truncate">
+              {user?.name || "المستخدم"}
+            </div>
+            <div className="text-[9.5px] text-neutral-500 truncate">
+              {user?.roles?.[0]?.name || "عضو الفريق"}
+            </div>
           </div>
         </div>
       </aside>

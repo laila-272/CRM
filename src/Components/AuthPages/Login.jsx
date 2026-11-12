@@ -4,9 +4,9 @@ import { Lock, Mail } from "lucide-react";
 import { useAuthLang } from "./Authlayout.jsx";
 import AuthInput from "./AuthInput.jsx";
 import SubmitButton from "./SubmitButton.jsx";
-import { loginUser } from "../../Services/authService.js";
-
+import { useAuth } from "../../context/AuthContext.jsx";
 export default function Login() {
+  const { login, permissions } = useAuth();
   const { t: all } = useAuthLang();
   const t = all.login;
 
@@ -29,19 +29,27 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    try {
-      await loginUser(values);
+    
+try {
+  const result = await login(values);
 
-      navigate("/dashboard", { replace: true });
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Something went wrong. Please try again.",
-      );
-    } finally {
-      setLoading(false);
-    }
+  // console.log("Login Response:", result);
+  // console.log("User Data:", result.data);
+  console.log("User Role:", result.data?.roles);
+console.log("Permissions:", permissions);
+  navigate("/dashboard", { replace: true });
+} catch (err) {
+  console.error("Login Error:", err);
+
+  setError(
+    err.response?.data?.message ||
+      err.message ||
+      "Something went wrong. Please try again.",
+  );
+} finally {
+  setLoading(false);
+}
+
   }
 
   return (
