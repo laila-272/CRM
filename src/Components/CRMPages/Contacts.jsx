@@ -41,6 +41,14 @@ import {
   waLink,
 } from "../../data/contacts.js";
 
+import ContactForm from "./Contactform.jsx";
+
+import {
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+} from "../../Services/contactService.js";
+
 const ACCENT = "#FF7E52";
 
 const TONE = {
@@ -49,6 +57,20 @@ const TONE = {
   "يحتاج متابعة": "orange",
   "غير نشط": "red",
   مرفوض: "red",
+};
+
+const SOURCE_MAP = {
+  فيسبوك: 1,
+  إحالة: 6,
+  "موقع إلكتروني": 9,
+  معرض: 11,
+  واتساب: 10,
+};
+
+const STATUS_MAP = {
+  نشط: "active",
+  "غير نشط": "inactive",
+  مرفوض: "declined",
 };
 
 const sub = (contact) => {
@@ -74,6 +96,111 @@ export default function Contacts() {
   const [owner, setOwner] = useState("all");
   const [attn, setAttn] = useState(false);
 
+  const [showForm, setShowForm] = useState(false);
+  const [editingContact, setEditingContact] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  // Create or update customer
+  const handleSave = async (formData) => {
+    try {
+      setSaving(true);
+      setSaveError("");
+
+      const payload = {
+        name: formData.name,
+        email: formData.email || null,
+        phone: formData.phone,
+        whatsapp: formData.whatsapp || formData.phone,
+        address: formData.address || null,
+        notes: formData.notes || null,
+        status: STATUS_MAP[formData.status],
+      };
+
+      // Preserve the current source if it is not one of the known options.
+      const sourceId = SOURCE_MAP[formData.source] ?? formData.sourceId;
+
+      if (sourceId != null) {
+        payload.source_id = Number(sourceId);
+      }
+
+      if (formData.owner) {
+        payload.assigned_to = Number(formData.owner);
+      } else if (editingContact) {
+        // Clear the assigned user when "بدون مسؤول" is selected.
+        payload.assigned_to = null;
+      }
+
+      if (editingContact) {
+        console.log("UPDATE CUSTOMER PAYLOAD:", payload);
+
+        await updateCustomer(editingContact.id, payload);
+      } else {
+        console.log("CREATE CUSTOMER PAYLOAD:", payload);
+
+        await createCustomer(payload);
+      }
+
+      await refresh();
+
+      setShowForm(false);
+      setEditingContact(null);
+    } catch (error) {
+      setSaveError(
+        error.response?.data?.message ||
+          error.message ||
+          (editingContact
+            ? "حدث خطأ أثناء تعديل بيانات العميل"
+            : "حدث خطأ أثناء إضافة العميل"),
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Move customer to recycle bin
+  const handleDelete = async (contact) => {
+    const confirmed = window.confirm(
+      `هل أنتِ متأكدة من نقل العميل "${contact.name}" إلى سلة المهملات؟`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setSaveError("");
+
+      await deleteCustomer(contact.id);
+
+      await refresh();
+    } catch (error) {
+      setSaveError(
+        error.response?.data?.message ||
+          error.message ||
+          "حدث خطأ أثناء نقل العميل إلى سلة المهملات",
+      );
+    }
+  };
+
+  const openCreateForm = () => {
+    setSaveError("");
+    setEditingContact(null);
+    setShowForm(true);
+  };
+
+  const openEditForm = (contact) => {
+    setSaveError("");
+    setEditingContact(contact);
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    if (saving) return;
+
+    setShowForm(false);
+    setEditingContact(null);
+  };
+
+  // Filter contacts
   const filtered = useMemo(() => {
     return contacts.filter((c) => {
       const matchesSource = source === "all" || c.source === source;
@@ -120,6 +247,7 @@ export default function Contacts() {
     </>
   );
 
+  // Export CSV
   const exportCsv = () => {
     downloadCsv(
       "contacts.csv",
@@ -146,15 +274,14 @@ export default function Contacts() {
     );
   };
 
+  // Table columns
   const columns = [
     {
       key: "name",
       label: "جهة الاتصال",
-
       render: (c) => (
         <div>
           <div className="font-semibold">{c.name}</div>
-
           <div className="mt-0.5 text-[10px] text-neutral-400">{sub(c)}</div>
         </div>
       ),
@@ -163,11 +290,9 @@ export default function Contacts() {
     {
       key: "contact",
       label: "بيانات التواصل",
-
       render: (c) => (
         <div>
           <Ltr>{c.phone || "—"}</Ltr>
-
           <div dir="ltr" className="text-right text-[10px] text-neutral-400">
             {c.email || "—"}
           </div>
@@ -190,14 +315,12 @@ export default function Contacts() {
     {
       key: "status",
       label: "الحالة",
-
       render: (c) => <Badge tone={TONE[c.status] || "gray"}>{c.status}</Badge>,
     },
 
     {
       key: "last",
       label: "آخر تواصل",
-
       render: (c) => (
         <span className="text-neutral-500">
           <Ltr>{dmy(c.last)}</Ltr>
@@ -208,7 +331,6 @@ export default function Contacts() {
     {
       key: "act",
       label: "إجراء",
-
       render: (c) => (
         <div
           className="flex items-center gap-2"
@@ -223,6 +345,14 @@ export default function Contacts() {
 
           <RowMenu
             items={[
+              {
+                label: "تعديل بيانات العميل",
+                onClick: () => openEditForm(c),
+              },
+              {
+                label: "نقل إلى سلة المهملات",
+                onClick: () => handleDelete(c),
+              },
               {
                 label: "فتح التفاصيل",
                 onClick: () => nav(`/contacts/${c.id}`),
@@ -254,11 +384,7 @@ export default function Contacts() {
           تصدير Excel
         </button>
 
-        <button
-          className={btnDark}
-          disabled
-          title="سيتم تفعيل الإضافة بعد ربط POST API"
-        >
+        <button className={btnDark} onClick={openCreateForm}>
           <Plus size={13} />
           إضافة جهة اتصال
         </button>
@@ -270,7 +396,6 @@ export default function Contacts() {
             size={20}
             className="mx-auto mb-2 animate-spin text-neutral-400"
           />
-
           <p className="text-sm text-neutral-500">جاري تحميل جهات الاتصال...</p>
         </div>
       )}
@@ -278,7 +403,6 @@ export default function Contacts() {
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
           <p>{error}</p>
-
           <button onClick={refresh} className="mt-2 font-semibold underline">
             إعادة المحاولة
           </button>
@@ -288,7 +412,6 @@ export default function Contacts() {
       {!loading && !error && (
         <>
           {/* Filters */}
-
           <div className="flex flex-wrap items-center gap-2">
             <SearchBox
               className="min-w-[240px] flex-[2]"
@@ -323,7 +446,6 @@ export default function Contacts() {
           </div>
 
           {/* Statistics */}
-
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatCard
               icon={Users}
@@ -355,14 +477,8 @@ export default function Contacts() {
           </div>
 
           {/* Quick filters */}
-
           <div className="flex flex-wrap items-center gap-2">
-            <Chip
-              active={!attn}
-              onClick={() => {
-                setAttn(false);
-              }}
-            >
+            <Chip active={!attn} onClick={() => setAttn(false)}>
               الكل {contacts.length}
             </Chip>
 
@@ -388,7 +504,6 @@ export default function Contacts() {
           </div>
 
           {/* Contacts Table */}
-
           <div className={`${card} overflow-hidden`}>
             <DataTable
               columns={columns}
@@ -407,7 +522,6 @@ export default function Contacts() {
           </div>
 
           {/* Follow-up and attention */}
-
           <section className={`${card} p-4`}>
             <div className="flex items-center justify-between">
               <h2 className="text-[13px] font-semibold text-ink">
@@ -448,6 +562,23 @@ export default function Contacts() {
             </button>
           </section>
         </>
+      )}
+
+      {/* Add / Edit Contact Modal */}
+      {showForm && (
+        <ContactForm
+          contact={editingContact}
+          saving={saving}
+          onClose={closeForm}
+          onSave={handleSave}
+        />
+      )}
+
+      {/* Save / Delete Error */}
+      {saveError && (
+        <div className="fixed bottom-5 left-5 z-[100] max-w-sm rounded-xl border border-red-200 bg-white p-4 text-sm text-red-600 shadow-lg">
+          {saveError}
+        </div>
       )}
     </div>
   );

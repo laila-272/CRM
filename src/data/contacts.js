@@ -10,8 +10,7 @@ export const OWNERS = ["سارة طارق", "أحمد علي", "ريم عادل"
 
 export const SOURCES = ["فيسبوك", "إحالة", "موقع إلكتروني", "معرض", "واتساب"];
 
-export const STATUSES = ["نشط", "جديد", "يحتاج متابعة", "غير نشط", "مرفوض"];
-
+export const STATUSES = ["نشط", "غير نشط", "مرفوض"];
 // Format date
 export const dmy = (iso) => {
   if (!iso) return "—";
@@ -98,8 +97,7 @@ const mapCustomer = (customer) => {
     phone: customer.phone || "",
     whatsapp: customer.whatsapp || "",
     address: customer.address || "",
-    city: "—",
-
+    city: customer.address || "—",
     // Not available in the current customers API response
     kind: "—",
     project: "—",
