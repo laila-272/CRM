@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modal, Field, inputCls } from "../AccountingPages/Accountingui.jsx";
 import { PROJECTS, STATUSES } from "../../data/contacts.js";
-import { getTeamMembers } from "../../Services/contactService.js";
+import { getTeamMembers } from "../../Services/teamService.js";
 
 const EMPTY = {
   name: "",

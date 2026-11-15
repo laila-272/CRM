@@ -27,6 +27,12 @@ import {
   forceDeleteCustomer,
 } from "../../Services/contactService.js";
 
+import {
+  getDeletedLeads,
+  restoreLead,
+  forceDeleteLead,
+} from "../../Services/leadService.js";
+
 const RETENTION_DAYS = 30;
 const SOON_DAYS = 7;
 
@@ -35,7 +41,8 @@ const PAGE_SIZE = 10;
 
 const CHIPS = [
   ["all", "كل العناصر"],
-  ["clients", "العملاء"],
+  ["customers", "العملاء"],
+  ["leads", "العملاء المحتملون"],
 ];
 
 /* ---------- helpers ---------- */
@@ -76,6 +83,7 @@ const fmtStamp = (value) => {
   if (Number.isNaN(date.getTime())) return "-";
 
   const dateText = date.toLocaleDateString("en-GB");
+
   const timeText = date.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -144,17 +152,21 @@ function FilterChip({ active, onClick, children }) {
 
 function ConfirmDialog({ item, onConfirm, onClose, loading }) {
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
+    const onKey = (e) => {
+      if (e.key === "Escape" && !loading) onClose();
+    };
 
     window.addEventListener("keydown", onKey);
 
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, loading]);
 
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4"
-      onClick={onClose}
+      onClick={() => {
+        if (!loading) onClose();
+      }}
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="del-title"
@@ -211,21 +223,45 @@ export default function Archive() {
 
   const [toast, notify] = useToast();
 
-  /* ---------- Fetch deleted customers ---------- */
+  /* ---------- Fetch deleted customers and leads ---------- */
 
   const fetchArchive = async () => {
     try {
       setLoading(true);
 
-      const data = await getDeletedCustomers();
+      const [customersResponse, leadsResponse] = await Promise.all([
+        getDeletedCustomers(),
+        getDeletedLeads(),
+      ]);
 
-      setItems(
-        (Array.isArray(data) ? data : []).map((customer) => ({
-          ...customer,
-          type: "عميل",
-          by: customer.deleted_by?.name || "-",
-        })),
+      const getArray = (response) => {
+        if (Array.isArray(response)) return response;
+        if (Array.isArray(response?.data)) return response.data;
+        if (Array.isArray(response?.data?.data)) {
+          return response.data.data;
+        }
+        return [];
+      };
+
+      const customers = getArray(customersResponse).map((customer) => ({
+        ...customer,
+        type: "عميل",
+        entityType: "customer",
+        by: customer.deleted_by?.name || "-",
+      }));
+
+      const leads = getArray(leadsResponse).map((lead) => ({
+        ...lead,
+        type: "عميل محتمل",
+        entityType: "lead",
+        by: lead.deleted_by?.name || "-",
+      }));
+
+      const combined = [...customers, ...leads].sort(
+        (a, b) => new Date(b.deleted_at || 0) - new Date(a.deleted_at || 0),
       );
+
+      setItems(combined);
     } catch (error) {
       console.error("FETCH ARCHIVE ERROR:", error);
 
@@ -263,7 +299,10 @@ export default function Archive() {
     const search = q.trim().toLowerCase();
 
     return items.filter((item) => {
-      const matchesCategory = cat === "all" || cat === "clients";
+      const matchesCategory =
+        cat === "all" ||
+        (cat === "customers" && item.entityType === "customer") ||
+        (cat === "leads" && item.entityType === "lead");
 
       const searchableValues = [
         item.name,
@@ -300,48 +339,74 @@ export default function Archive() {
     setPage(1);
   };
 
-  /* ---------- Restore customer ---------- */
+  /* ---------- Restore customer or lead ---------- */
 
   const restore = async (item) => {
+    const busyKey = `${item.entityType}-${item.id}`;
+
     try {
-      setBusyId(item.id);
+      setBusyId(busyKey);
 
-      await restoreCustomer(item.id);
+      if (item.entityType === "lead") {
+        await restoreLead(item.id);
+      } else {
+        await restoreCustomer(item.id);
+      }
 
-      setItems((prev) => prev.filter((customer) => customer.id !== item.id));
+      setItems((prev) =>
+        prev.filter(
+          (customer) =>
+            !(
+              customer.entityType === item.entityType &&
+              String(customer.id) === String(item.id)
+            ),
+        ),
+      );
 
       notify(`تم استرجاع «${item.name}» بنجاح`);
     } catch (error) {
-      console.error("RESTORE CUSTOMER ERROR:", error);
+      console.error("RESTORE ERROR:", error);
 
       notify(
-        error.response?.data?.message || error.message || "فشل استرجاع العميل",
+        error.response?.data?.message || error.message || "فشل استرجاع العنصر",
       );
     } finally {
       setBusyId(null);
     }
   };
 
-  /* ---------- Permanently delete customer ---------- */
+  /* ---------- Permanently delete customer or lead ---------- */
 
   const destroy = async (item) => {
     try {
       setActionLoading(true);
 
-      await forceDeleteCustomer(item.id);
+      if (item.entityType === "lead") {
+        await forceDeleteLead(item.id);
+      } else {
+        await forceDeleteCustomer(item.id);
+      }
 
-      setItems((prev) => prev.filter((customer) => customer.id !== item.id));
+      setItems((prev) =>
+        prev.filter(
+          (customer) =>
+            !(
+              customer.entityType === item.entityType &&
+              String(customer.id) === String(item.id)
+            ),
+        ),
+      );
 
       setConfirm(null);
 
-      notify("تم حذف العميل نهائيًا بنجاح");
+      notify("تم حذف العنصر نهائيًا بنجاح");
     } catch (error) {
-      console.error("FORCE DELETE CUSTOMER ERROR:", error);
+      console.error("FORCE DELETE ERROR:", error);
 
       notify(
         error.response?.data?.message ||
           error.message ||
-          "فشل حذف العميل نهائيًا",
+          "فشل حذف العنصر نهائيًا",
       );
     } finally {
       setActionLoading(false);
@@ -354,7 +419,7 @@ export default function Archive() {
     downloadCsv(
       "archive.csv",
       [
-        "اسم العميل",
+        "اسم العنصر",
         "النوع",
         "حذف بواسطة",
         "تاريخ الحذف",
@@ -452,7 +517,7 @@ export default function Archive() {
         </div>
       </div>
 
-      {/* Deleted customers table */}
+      {/* Archived customers and leads table */}
 
       <section className={`${card} mt-4 overflow-hidden`}>
         <div className="flex flex-wrap items-start justify-between gap-2 p-5 pb-3">
@@ -462,7 +527,7 @@ export default function Archive() {
             </h2>
 
             <p className="mt-0.5 text-[10.5px] text-neutral-500">
-              آخر العملاء الذين تم حذفهم من النظام.
+              آخر العملاء والعملاء المحتملين الذين تم حذفهم من النظام.
             </p>
           </div>
 
@@ -513,17 +578,19 @@ export default function Archive() {
                 <>
                   {rows.map((item) => {
                     const left = daysLeft(item);
-                    const isBusy = busyId === item.id;
+
+                    const isBusy = busyId === `${item.entityType}-${item.id}`;
 
                     return (
                       <tr
-                        key={item.id}
+                        key={`${item.entityType}-${item.id}`}
                         className="border-b border-line last:border-0 hover:bg-neutral-50/60"
                       >
                         <td className={`${td} !py-3 text-[12px]`}>
                           <div className="font-medium text-ink">
                             {item.name}
                           </div>
+
                           {item.email && (
                             <div className="mt-1 text-[10px] text-neutral-400">
                               {item.email}
@@ -532,7 +599,13 @@ export default function Archive() {
                         </td>
 
                         <td className={td}>
-                          <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] text-neutral-600">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] ${
+                              item.entityType === "lead"
+                                ? "bg-orange-50 text-orange-700"
+                                : "bg-neutral-100 text-neutral-600"
+                            }`}
+                          >
                             {item.type}
                           </span>
                         </td>

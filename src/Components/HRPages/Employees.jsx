@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
+
 import {
   PageHeader,
   SearchBox,
@@ -8,7 +9,8 @@ import {
   PagerBar,
   btnDark,
   card,
-} from "../Shared/ui.jsx"; // same shared path as the other modules
+} from "../Shared/ui.jsx";
+
 import {
   Badge,
   DataTable,
@@ -16,8 +18,19 @@ import {
   useToast,
   Ltr,
 } from "../AccountingPages/Accountingui.jsx";
-import { useEmployees, employeesApi, STATUS } from "../../data/Employeesstore.js";
-import { Avatar, EmployeeFormModal, dmy } from "./Hrshared.jsx";
+
+import {
+  useEmployees,
+  employeesApi,
+  STATUS,
+} from "../../data/Employeesstore.js";
+
+import {
+  Avatar,
+  EmployeeFormModal,
+  TeamInvitationModal,
+  dmy,
+} from "./Hrshared.jsx";
 
 const FILTERS = [
   ["all", "الكل"],
@@ -25,16 +38,21 @@ const FILTERS = [
   ["leave", "في إجازة"],
   ["ended", "منتهي الخدمة"],
 ];
+
 const PAGE = 6;
 
 const Stat = ({ title, value, sub, green }) => (
   <div className={`${card} p-4`}>
     <div className="text-[11px] text-neutral-500">{title}</div>
+
     <div className="mt-3 text-[28px] font-semibold leading-none text-ink">
       {value}
     </div>
+
     <div
-      className={`mt-3 text-[10px] ${green ? "text-green-600" : "text-neutral-500"}`}
+      className={`mt-3 text-[10px] ${
+        green ? "text-green-600" : "text-neutral-500"
+      }`}
     >
       {sub}
     </div>
@@ -44,10 +62,17 @@ const Stat = ({ title, value, sub, green }) => (
 export default function Employees() {
   const nav = useNavigate();
   const all = useEmployees();
+
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState(null); // null | "add" | employee
+
+  // Employee modal
+  const [modal, setModal] = useState(null);
+
+  // Team invitation modal
+  const [invitationOpen, setInvitationOpen] = useState(false);
+
   const [toast, showToast] = useToast();
 
   const count = (f) =>
@@ -56,8 +81,11 @@ export default function Employees() {
         ? e.status === "active" || e.status === "new"
         : e.status === f,
     ).length;
+
   const month = all.filter((e) => e.hired.startsWith("2026-10")).length;
+
   const depts = [...new Set(all.map((e) => e.dept))];
+
   const rows = useMemo(
     () =>
       all.filter(
@@ -73,11 +101,17 @@ export default function Employees() {
       ),
     [all, filter, q],
   );
+
   const pages = Math.max(1, Math.ceil(rows.length / PAGE));
   const p = Math.min(page, pages);
+
   const slice = rows.slice((p - 1) * PAGE, p * PAGE);
+
   const info = rows.length
-    ? `عرض ${(p - 1) * PAGE + 1} - ${Math.min(p * PAGE, rows.length)} من ${rows.length} موظف`
+    ? `عرض ${(p - 1) * PAGE + 1} - ${Math.min(
+        p * PAGE,
+        rows.length,
+      )} من ${rows.length} موظف`
     : "لا توجد نتائج";
 
   const columns = [
@@ -87,8 +121,10 @@ export default function Employees() {
       render: (e) => (
         <div className="flex items-center gap-3">
           <Avatar name={e.name} size={26} />
+
           <div>
             <div className="font-semibold">{e.name}</div>
+
             <div dir="ltr" className="text-right text-[10px] text-neutral-400">
               {e.email}
             </div>
@@ -96,8 +132,17 @@ export default function Employees() {
         </div>
       ),
     },
-    { key: "dept", label: "القسم" },
-    { key: "title", label: "المسمى الوظيفي" },
+
+    {
+      key: "dept",
+      label: "القسم",
+    },
+
+    {
+      key: "title",
+      label: "المسمى الوظيفي",
+    },
+
     {
       key: "hired",
       label: "تاريخ التعيين",
@@ -107,11 +152,13 @@ export default function Employees() {
         </span>
       ),
     },
+
     {
       key: "status",
       label: "الحالة",
       render: (e) => <Badge tone="gray">{STATUS[e.status]}</Badge>,
     },
+
     {
       key: "act",
       label: "الإجراءات",
@@ -119,13 +166,24 @@ export default function Employees() {
         <div onClick={(ev) => ev.stopPropagation()}>
           <RowMenu
             items={[
-              { label: "عرض الملف", onClick: () => nav(`/employees/${e.id}`) },
-              { label: "تعديل", onClick: () => setModal(e) },
+              {
+                label: "عرض الملف",
+                onClick: () => nav(`/employees/${e.id}`),
+              },
+
+              {
+                label: "تعديل",
+                onClick: () => setModal(e),
+              },
+
               e.status === "ended"
                 ? {
                     label: "إعادة التفعيل",
                     onClick: () => {
-                      employeesApi.update(e.id, { status: "active" });
+                      employeesApi.update(e.id, {
+                        status: "active",
+                      });
+
                       showToast("تمت إعادة تفعيل الموظف");
                     },
                   }
@@ -133,29 +191,40 @@ export default function Employees() {
                   ? {
                       label: "إنهاء الإجازة",
                       onClick: () => {
-                        employeesApi.update(e.id, { status: "active" });
+                        employeesApi.update(e.id, {
+                          status: "active",
+                        });
+
                         showToast("تم تحديث الحالة");
                       },
                     }
                   : {
                       label: "تحويل إلى إجازة",
                       onClick: () => {
-                        employeesApi.update(e.id, { status: "leave" });
+                        employeesApi.update(e.id, {
+                          status: "leave",
+                        });
+
                         showToast("تم تحويل الموظف إلى إجازة");
                       },
                     },
+
               ...(e.status !== "ended"
                 ? [
                     {
                       label: "إنهاء الخدمة",
                       danger: true,
                       onClick: () => {
-                        employeesApi.update(e.id, { status: "ended" });
+                        employeesApi.update(e.id, {
+                          status: "ended",
+                        });
+
                         showToast("تم إنهاء الخدمة");
                       },
                     },
                   ]
                 : []),
+
               {
                 label: "حذف",
                 danger: true,
@@ -176,7 +245,9 @@ export default function Employees() {
   const save = (v) => {
     if (modal === "add") {
       const id = employeesApi.add(v);
+
       showToast(`تمت إضافة ${v.name} (${id})`);
+
       setFilter("all");
       setQ("");
       setPage(1);
@@ -184,23 +255,39 @@ export default function Employees() {
       employeesApi.update(modal.id, v);
       showToast("تم حفظ التعديلات");
     }
+
     setModal(null);
   };
 
   return (
     <div dir="rtl" className="space-y-4">
+      {/* Page Header */}
       <PageHeader
         title="الموظفون"
         subtitle="إدارة بيانات فريق العمل وأقسامهم ومسمياتهم الوظيفية"
       >
-        <button
-          className={`${btnDark} !rounded-full`}
-          onClick={() => setModal("add")}
-        >
-          <Plus size={13} /> موظف جديد
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {/* Invite Team Member */}
+          <button
+            className={`${btnDark} !rounded-full`}
+            onClick={() => setInvitationOpen(true)}
+          >
+            <Plus size={13} />
+            دعوة عضو للفريق
+          </button>
+
+          {/* Add Employee */}
+          <button
+            className={`${btnDark} !rounded-full`}
+            onClick={() => setModal("add")}
+          >
+            <Plus size={13} />
+            موظف جديد
+          </button>
+        </div>
       </PageHeader>
 
+      {/* Search and Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <SearchBox
           className="relative w-full sm:w-[250px]"
@@ -211,6 +298,7 @@ export default function Employees() {
           }}
           placeholder="ابحث عن موظف..."
         />
+
         <div className="flex flex-wrap gap-2">
           {FILTERS.map(([k, l]) => (
             <Chip
@@ -227,6 +315,7 @@ export default function Employees() {
         </div>
       </div>
 
+      {/* Statistics */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
           title="إجمالي الموظفين"
@@ -234,12 +323,17 @@ export default function Employees() {
           sub={`+${month} هذا الشهر`}
           green
         />
+
         <Stat
           title="نشط"
           value={count("active")}
-          sub={`${all.length ? Math.round((count("active") / all.length) * 100) : 0}% من الفريق`}
+          sub={`${
+            all.length ? Math.round((count("active") / all.length) * 100) : 0
+          }% من الفريق`}
         />
+
         <Stat title="في إجازة" value={count("leave")} sub="عودة قريبة" />
+
         <Stat
           title="الأقسام"
           value={depts.length}
@@ -247,6 +341,7 @@ export default function Employees() {
         />
       </div>
 
+      {/* Employees Table */}
       <div className={`${card} overflow-hidden`}>
         <DataTable
           columns={columns}
@@ -255,9 +350,11 @@ export default function Employees() {
           onRowClick={(e) => nav(`/employees/${e.id}`)}
           minWidth={760}
         />
+
         <PagerBar page={p} pages={pages} onPage={setPage} info={info} />
       </div>
 
+      {/* Add / Edit Employee Modal */}
       {modal && (
         <EmployeeFormModal
           employee={modal === "add" ? null : modal}
@@ -265,6 +362,17 @@ export default function Employees() {
           onSave={save}
         />
       )}
+
+      {/* Team Invitation Modal */}
+      {invitationOpen && (
+        <TeamInvitationModal
+          onClose={() => setInvitationOpen(false)}
+          onSuccess={() => {
+            showToast("تم إرسال الدعوة بنجاح");
+          }}
+        />
+      )}
+
       {toast}
     </div>
   );

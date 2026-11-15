@@ -81,24 +81,6 @@ export const updateCustomer = async (id, customer) => {
   }
 };
 
-// Get team members
-export const getTeamMembers = async () => {
-  try {
-    const response = await api.get("/api/team/members");
-
-    console.log("TEAM RESPONSE:", response.data);
-
-    if (!response.data.success) {
-      throw new Error(response.data.message || "Failed to get team members");
-    }
-
-    return response.data.data;
-  } catch (error) {
-    console.error("TEAM API ERROR:", error.response?.data || error.message);
-
-    throw error;
-  }
-};
 // Move customer to recycle bin
 export const deleteCustomer = async (id) => {
   try {
@@ -186,12 +168,9 @@ const downloadFile = (data, fileName) => {
 // Export one customer as PDF
 export const exportCustomerPDF = async (id) => {
   try {
-    const response = await api.get(
-      `/api/customers/${id}/export/pdf`,
-      {
-        responseType: "blob",
-      },
-    );
+    const response = await api.get(`/api/customers/${id}/export/pdf`, {
+      responseType: "blob",
+    });
 
     downloadFile(response.data, `customer-${id}.pdf`);
   } catch (error) {
@@ -206,12 +185,9 @@ export const exportCustomerPDF = async (id) => {
 // Export one customer as Excel
 export const exportCustomerExcel = async (id) => {
   try {
-    const response = await api.get(
-      `/api/customers/${id}/export/excel`,
-      {
-        responseType: "blob",
-      },
-    );
+    const response = await api.get(`/api/customers/${id}/export/excel`, {
+      responseType: "blob",
+    });
 
     downloadFile(response.data, `customer-${id}.xlsx`);
   } catch (error) {
@@ -244,7 +220,10 @@ export const forceDeleteCustomer = async (id) => {
 };
 
 // Create customer communication
-export const createCustomerCommunication = async (customerId, communication) => {
+export const createCustomerCommunication = async (
+  customerId,
+  communication,
+) => {
   try {
     const response = await api.post(
       `/api/customers/${customerId}/communications`,

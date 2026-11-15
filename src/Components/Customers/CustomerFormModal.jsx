@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { STATUSES, SOURCES, PROJECTS, OWNERS } from "../../data/customers.js";
+
+const STATUSES = [
+  { value: "new", label: "جديد" },
+  { value: "contacted", label: "تم التواصل" },
+  { value: "qualified", label: "مؤهَّل" },
+  { value: "proposal", label: "عرض سعر" },
+  { value: "negotiation", label: "تفاوض" },
+  { value: "declined", label: "مرفوض" },
+  { value: "converted", label: "تم التحويل" },
+];
 
 const empty = {
   name: "",
   phone: "",
   altPhone: "",
   email: "",
-  city: "القاهرة الجديدة",
-  job: "",
-  project: PROJECTS[0],
-  unitType: "شقة – 3 غرف",
   budget: "",
-  source: SOURCES[0],
-  status: STATUSES[0],
-  owner: OWNERS[0],
-  payment: "",
+  source: "",
+  status: "new",
+  owner: "",
   nextFollowUp: "",
   note: "",
 };
@@ -29,25 +33,98 @@ function Field({ label, children }) {
   );
 }
 
-export default function CustomerFormModal({ initial, onSave, onClose }) {
-  const [f, setF] = useState({ ...empty, ...(initial || {}) });
+export default function CustomerFormModal({
+  initial,
+  onSave,
+  onClose,
+  sources = [],
+  members = [],
+}) {
+  const [f, setF] = useState(() => ({
+    ...empty,
+    ...(initial || {}),
+    source: initial?.source_id ?? initial?.source?.id ?? "",
+    owner: initial?.assigned_to?.id ?? initial?.assigned_to ?? "",
+    status: initial?.status || "new",
+    altPhone: initial?.whatsapp || "",
+    note: initial?.notes || "",
+    nextFollowUp: initial?.next_follow_up_at
+      ? initial.next_follow_up_at.slice(0, 16)
+      : "",
+  }));
+
   const [err, setErr] = useState("");
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const [saving, setSaving] = useState(false);
+
+  const set = (k) => (e) => setF((prev) => ({ ...prev, [k]: e.target.value }));
+
   const select = (k, list) => (
     <select className="input" value={f[k]} onChange={set(k)}>
-      {list.map((o) => (
-        <option key={o}>{o}</option>
-      ))}
+      <option value="">اختر</option>
+
+      {list.map((item) => {
+        const value = typeof item === "object" ? (item.id ?? item.value) : item;
+
+        const label =
+          typeof item === "object" ? (item.name ?? item.label) : item;
+
+        return (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        );
+      })}
     </select>
   );
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    if (!f.name.trim() || !/^\d{8,15}$/.test(f.phone.trim())) {
-      setErr("الاسم مطلوب ورقم الهاتف يجب أن يكون أرقامًا فقط (8–15 رقمًا).");
+    setErr("");
+
+    if (!f.name.trim() || !/^\+?[\d\s()-]{8,20}$/.test(f.phone.trim())) {
+      setErr("الاسم مطلوب ورقم الهاتف يجب أن يكون صحيحًا.");
       return;
     }
-    onSave({ ...f, name: f.name.trim(), phone: f.phone.trim() });
+
+    if (!f.source || !f.owner) {
+      setErr("من فضلك اختار المصدر والشخص المسؤول.");
+      return;
+    }
+
+    const budget = Number(f.budget);
+
+    if (f.budget.trim() !== "" && (!Number.isFinite(budget) || budget < 0)) {
+      setErr("من فضلك أدخل ميزانية صحيحة.");
+      return;
+    }
+
+    const payload = {
+      name: f.name.trim(),
+      email: f.email.trim() || null,
+      phone: f.phone.trim(),
+      whatsapp: f.altPhone.trim() || null,
+      source_id: Number(f.source),
+      assigned_to: Number(f.owner),
+      status: f.status,
+      budget: f.budget.trim() === "" ? null : budget,
+      next_follow_up_at: f.nextFollowUp
+        ? f.nextFollowUp.replace("T", " ") + ":00"
+        : null,
+      notes: f.note.trim() || null,
+    };
+
+    try {
+      setSaving(true);
+      await onSave(payload);
+    } catch (error) {
+      setErr(
+        error.response?.data?.message ||
+          error.message ||
+          "حدث خطأ أثناء حفظ البيانات.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -64,14 +141,17 @@ export default function CustomerFormModal({ initial, onSave, onClose }) {
           <h2 className="text-base font-bold">
             {initial ? "تعديل بيانات العميل" : "إضافة عميل"}
           </h2>
+
           <button type="button" onClick={onClose} aria-label="إغلاق">
             <X size={18} />
           </button>
         </div>
+
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="اسم العميل">
             <input className="input" value={f.name} onChange={set("name")} />
           </Field>
+
           <Field label="رقم الهاتف">
             <input
               className="input"
@@ -81,6 +161,7 @@ export default function CustomerFormModal({ initial, onSave, onClose }) {
               onChange={set("phone")}
             />
           </Field>
+
           <Field label="رقم بديل">
             <input
               className="input"
@@ -89,6 +170,7 @@ export default function CustomerFormModal({ initial, onSave, onClose }) {
               onChange={set("altPhone")}
             />
           </Field>
+
           <Field label="البريد الإلكتروني">
             <input
               className="input"
@@ -98,20 +180,7 @@ export default function CustomerFormModal({ initial, onSave, onClose }) {
               onChange={set("email")}
             />
           </Field>
-          <Field label="المدينة">
-            <input className="input" value={f.city} onChange={set("city")} />
-          </Field>
-          <Field label="الوظيفة">
-            <input className="input" value={f.job} onChange={set("job")} />
-          </Field>
-          <Field label="المشروع المهتم به">{select("project", PROJECTS)}</Field>
-          <Field label="نوع الوحدة">
-            <input
-              className="input"
-              value={f.unitType}
-              onChange={set("unitType")}
-            />
-          </Field>
+
           <Field label="الميزانية">
             <input
               className="input"
@@ -121,25 +190,23 @@ export default function CustomerFormModal({ initial, onSave, onClose }) {
               onChange={set("budget")}
             />
           </Field>
-          <Field label="المصدر">{select("source", SOURCES)}</Field>
+
+          <Field label="المصدر">{select("source", sources)}</Field>
+
           <Field label="الحالة">{select("status", STATUSES)}</Field>
-          <Field label="الشخص المسؤول">{select("owner", OWNERS)}</Field>
-          <Field label="طريقة الدفع">
-            <input
-              className="input"
-              value={f.payment}
-              onChange={set("payment")}
-            />
-          </Field>
+
+          <Field label="الشخص المسؤول">{select("owner", members)}</Field>
+
           <Field label="المتابعة القادمة">
             <input
               className="input"
-              placeholder="غدًا / 15/7"
+              type="datetime-local"
               value={f.nextFollowUp}
               onChange={set("nextFollowUp")}
             />
           </Field>
         </div>
+
         <Field label="ملاحظات">
           <textarea
             className="input !h-20 py-2 mt-0"
@@ -147,11 +214,18 @@ export default function CustomerFormModal({ initial, onSave, onClose }) {
             onChange={set("note")}
           />
         </Field>
+
         {err && <p className="text-red-600 text-xs mt-2">{err}</p>}
+
         <div className="flex gap-2 mt-4">
-          <button className="btn btn-dark" type="submit">
-            {initial ? "حفظ التعديلات" : "إضافة العميل"}
+          <button className="btn btn-dark" type="submit" disabled={saving}>
+            {saving
+              ? "جاري الحفظ..."
+              : initial
+                ? "حفظ التعديلات"
+                : "إضافة العميل"}
           </button>
+
           <button className="btn" type="button" onClick={onClose}>
             إلغاء
           </button>
