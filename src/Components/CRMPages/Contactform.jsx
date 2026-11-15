@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, Field, inputCls } from "../AccountingPages/Accountingui.jsx";
-import { PROJECTS, SOURCES, STATUSES } from "../../data/contacts.js";
+import { PROJECTS, STATUSES } from "../../data/contacts.js";
 import { getTeamMembers } from "../../Services/contactService.js";
 
 const EMPTY = {
@@ -13,7 +13,7 @@ const EMPTY = {
   project: PROJECTS[0],
   owner: "",
   status: "نشط",
-  source: SOURCES[0],
+  source: "",
   sourceId: null,
   value: "",
   notes: "",
@@ -26,24 +26,23 @@ const STATUS_LABELS = {
   declined: "مرفوض",
 };
 
-const SOURCE_ID_TO_LABEL = {
-  1: "فيسبوك",
-  6: "إحالة",
-  9: "موقع إلكتروني",
-  11: "معرض",
-  10: "واتساب",
-};
-
-const getInitialValues = (contact) => {
+const getInitialValues = (contact, sources) => {
   if (!contact) return { ...EMPTY };
 
   const raw = contact.raw || {};
-  const sourceId = raw.source?.id ?? contact.sourceId ?? null;
+
+  const sourceId =
+    raw.source?.id ??
+    raw.source_id ??
+    contact.sourceId ??
+    contact.source_id ??
+    null;
+
   const sourceName =
-    SOURCE_ID_TO_LABEL[sourceId] ||
+    sources.find((item) => String(item.id) === String(sourceId))?.name ||
     raw.source?.name ||
     contact.source ||
-    SOURCES[0];
+    "";
 
   return {
     ...EMPTY,
@@ -56,7 +55,7 @@ const getInitialValues = (contact) => {
     notes: contact.notes || "",
     owner: String(raw.assigned_to?.id ?? contact.ownerId ?? ""),
     source: sourceName,
-    sourceId,
+    sourceId: sourceId ? Number(sourceId) : null,
     status:
       STATUS_LABELS[raw.status] ||
       STATUS_LABELS[contact.apiStatus] ||
@@ -67,19 +66,28 @@ const getInitialValues = (contact) => {
 
 export default function ContactForm({
   contact,
+  sources = [],
+  sourcesLoading = false,
   onClose,
   onSave,
   saving = false,
 }) {
-  const [f, setF] = useState(() => getInitialValues(contact));
+  const [f, setF] = useState(() => getInitialValues(contact, sources));
   const [err, setErr] = useState("");
   const [teamMembers, setTeamMembers] = useState([]);
   const [teamLoading, setTeamLoading] = useState(true);
 
+  // Update form values when contact or sources change
+  useEffect(() => {
+    setF(getInitialValues(contact, sources));
+  }, [contact, sources]);
+
+  // Load team members
   useEffect(() => {
     const fetchTeam = async () => {
       try {
         const members = await getTeamMembers();
+
         setTeamMembers(members.filter((member) => member.status === "active"));
       } catch (error) {
         console.error("Team members error:", error.response?.data || error);
@@ -92,8 +100,27 @@ export default function ContactForm({
     fetchTeam();
   }, []);
 
-  const set = (key) => (e) =>
-    setF((prev) => ({ ...prev, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    setF((prev) => ({
+      ...prev,
+      [key]: e.target.value,
+    }));
+  };
+
+  // Handle source selection using API ID
+  const handleSourceChange = (e) => {
+    const selectedId = e.target.value;
+
+    const selectedSource = sources.find(
+      (item) => String(item.id) === selectedId,
+    );
+
+    setF((prev) => ({
+      ...prev,
+      sourceId: selectedSource ? Number(selectedSource.id) : null,
+      source: selectedSource?.name || "",
+    }));
+  };
 
   const submit = () => {
     if (!f.name.trim()) {
@@ -116,26 +143,25 @@ export default function ContactForm({
     onSave({
       ...f,
       name: f.name.trim(),
+      sourceId: f.sourceId ? Number(f.sourceId) : null,
       value: Number(f.value) || 0,
     });
   };
 
-  const sel = (key, list) => {
-    const options =
-      key === "source" && f.source && !list.includes(f.source)
-        ? [...list, f.source]
-        : list;
+  const sel = (key, list) => (
+    <select className={inputCls} value={f[key]} onChange={set(key)}>
+      {list.map((item) => (
+        <option key={item} value={item}>
+          {item}
+        </option>
+      ))}
+    </select>
+  );
 
-    return (
-      <select className={inputCls} value={f[key]} onChange={set(key)}>
-        {options.map((item) => (
-          <option key={item} value={item}>
-            {item}
-          </option>
-        ))}
-      </select>
-    );
-  };
+  // Keep the existing source visible when editing
+  const currentSourceExists = sources.some(
+    (item) => String(item.id) === String(f.sourceId),
+  );
 
   return (
     <Modal
@@ -206,7 +232,30 @@ export default function ContactForm({
 
       <Field label="الحالة">{sel("status", STATUSES)}</Field>
 
-      <Field label="المصدر">{sel("source", SOURCES)}</Field>
+      <Field label="المصدر">
+        <select
+          className={inputCls}
+          value={f.sourceId ? String(f.sourceId) : ""}
+          onChange={handleSourceChange}
+          disabled={sourcesLoading}
+        >
+          <option value="">
+            {sourcesLoading ? "جاري تحميل المصادر..." : "اختر مصدر العميل"}
+          </option>
+
+          {f.sourceId && !currentSourceExists && (
+            <option value={String(f.sourceId)}>
+              {f.source || "المصدر الحالي"}
+            </option>
+          )}
+
+          {sources.map((item) => (
+            <option key={item.id} value={String(item.id)}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      </Field>
 
       <Field label="قيمة التعاملات (ج.م)">
         <input

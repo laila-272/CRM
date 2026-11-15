@@ -154,3 +154,129 @@ export const getDeletedCustomers = async () => {
     throw error;
   }
 };
+export const exportCustomersPDF = async () => {
+  const response = await api.get("/api/customers/export/pdf", {
+    responseType: "blob",
+  });
+
+  downloadFile(response.data, "customers.pdf");
+};
+
+export const exportCustomersExcel = async () => {
+  const response = await api.get("/api/customers/export/excel", {
+    responseType: "blob",
+  });
+
+  downloadFile(response.data, "customers.xlsx");
+};
+
+const downloadFile = (data, fileName) => {
+  const url = window.URL.createObjectURL(data);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.URL.revokeObjectURL(url);
+};
+// Export one customer as PDF
+export const exportCustomerPDF = async (id) => {
+  try {
+    const response = await api.get(
+      `/api/customers/${id}/export/pdf`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    downloadFile(response.data, `customer-${id}.pdf`);
+  } catch (error) {
+    console.error(
+      "EXPORT CUSTOMER PDF ERROR:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+// Export one customer as Excel
+export const exportCustomerExcel = async (id) => {
+  try {
+    const response = await api.get(
+      `/api/customers/${id}/export/excel`,
+      {
+        responseType: "blob",
+      },
+    );
+
+    downloadFile(response.data, `customer-${id}.xlsx`);
+  } catch (error) {
+    console.error(
+      "EXPORT CUSTOMER EXCEL ERROR:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+// Permanently delete customer
+export const forceDeleteCustomer = async (id) => {
+  try {
+    const response = await api.delete(`/api/customers/${id}/force`);
+
+    if (!response.data.success) {
+      throw new Error(
+        response.data.message || "Failed to permanently delete customer",
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "FORCE DELETE CUSTOMER ERROR:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+// Create customer communication
+export const createCustomerCommunication = async (customerId, communication) => {
+  try {
+    const response = await api.post(
+      `/api/customers/${customerId}/communications`,
+      communication,
+    );
+
+    if (!response.data.success) {
+      throw new Error(
+        response.data.message || "Failed to create communication",
+      );
+    }
+
+    return response.data.data;
+  } catch (error) {
+    console.error(
+      "CREATE CUSTOMER COMMUNICATION ERROR:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};
+
+// Get customer sources
+export const getCustomerSources = async () => {
+  try {
+    const response = await api.get("/api/sources");
+    return response.data.data;
+  } catch (error) {
+    console.error(
+      "GET CUSTOMER SOURCES ERROR:",
+      error.response?.data || error.message,
+    );
+    throw error;
+  }
+};

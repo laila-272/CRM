@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -17,7 +17,6 @@ import {
   Chip,
   PagerBar,
   StatCard,
-  downloadCsv,
   btnDark,
   btnLight,
   card,
@@ -33,7 +32,6 @@ import {
 
 import {
   useContactsApi,
-  SOURCES,
   STATUSES,
   daysSince,
   needsAttention,
@@ -47,6 +45,9 @@ import {
   createCustomer,
   updateCustomer,
   deleteCustomer,
+  exportCustomersPDF,
+  exportCustomersExcel,
+  getCustomerSources,
 } from "../../Services/contactService.js";
 
 const ACCENT = "#FF7E52";
@@ -59,14 +60,6 @@ const TONE = {
   مرفوض: "red",
 };
 
-const SOURCE_MAP = {
-  فيسبوك: 1,
-  إحالة: 6,
-  "موقع إلكتروني": 9,
-  معرض: 11,
-  واتساب: 10,
-};
-
 const STATUS_MAP = {
   نشط: "active",
   "غير نشط": "inactive",
@@ -75,11 +68,11 @@ const STATUS_MAP = {
 
 const sub = (contact) => {
   if (contact.kind === "فرد") {
-    return `عميل فردي · ${contact.city}`;
+    return `عميل فردي · ${contact.city || ""}`;
   }
 
   if (contact.kind === "شركة") {
-    return `شركة · ${contact.city}`;
+    return `شركة · ${contact.city || ""}`;
   }
 
   return contact.address || "—";
@@ -89,6 +82,10 @@ export default function Contacts() {
   const nav = useNavigate();
 
   const { contacts, loading, error, refresh } = useContactsApi();
+
+  const [sources, setSources] = useState([]);
+  const [sourcesLoading, setSourcesLoading] = useState(false);
+  const [sourcesError, setSourcesError] = useState("");
 
   const [q, setQ] = useState("");
   const [source, setSource] = useState("all");
@@ -100,6 +97,47 @@ export default function Contacts() {
   const [editingContact, setEditingContact] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [exporting, setExporting] = useState("");
+
+  // Load customer sources from API
+  const loadSources = async () => {
+    try {
+      setSourcesLoading(true);
+      setSourcesError("");
+
+      const data = await getCustomerSources();
+      setSources(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setSourcesError(
+        error.response?.data?.message ||
+          error.message ||
+          "حدث خطأ أثناء تحميل مصادر العملاء",
+      );
+    } finally {
+      setSourcesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSources();
+  }, []);
+
+  // Get source ID from selected source
+  const getSourceId = (formData) => {
+    if (formData.sourceId != null && formData.sourceId !== "") {
+      return Number(formData.sourceId);
+    }
+
+    if (formData.source_id != null && formData.source_id !== "") {
+      return Number(formData.source_id);
+    }
+
+    const selectedSource = sources.find(
+      (item) => item.name === formData.source,
+    );
+
+    return selectedSource?.id;
+  };
 
   // Create or update customer
   const handleSave = async (formData) => {
@@ -114,30 +152,24 @@ export default function Contacts() {
         whatsapp: formData.whatsapp || formData.phone,
         address: formData.address || null,
         notes: formData.notes || null,
-        status: STATUS_MAP[formData.status],
+        status: STATUS_MAP[formData.status] || formData.status,
       };
 
-      // Preserve the current source if it is not one of the known options.
-      const sourceId = SOURCE_MAP[formData.source] ?? formData.sourceId;
+      const sourceId = getSourceId(formData);
 
-      if (sourceId != null) {
-        payload.source_id = Number(sourceId);
+      if (sourceId != null && !Number.isNaN(sourceId)) {
+        payload.source_id = sourceId;
       }
 
       if (formData.owner) {
         payload.assigned_to = Number(formData.owner);
       } else if (editingContact) {
-        // Clear the assigned user when "بدون مسؤول" is selected.
         payload.assigned_to = null;
       }
 
       if (editingContact) {
-        console.log("UPDATE CUSTOMER PAYLOAD:", payload);
-
         await updateCustomer(editingContact.id, payload);
       } else {
-        console.log("CREATE CUSTOMER PAYLOAD:", payload);
-
         await createCustomer(payload);
       }
 
@@ -170,7 +202,6 @@ export default function Contacts() {
       setSaveError("");
 
       await deleteCustomer(contact.id);
-
       await refresh();
     } catch (error) {
       setSaveError(
@@ -200,20 +231,56 @@ export default function Contacts() {
     setEditingContact(null);
   };
 
+  // Export PDF or Excel using backend APIs
+  const handleExport = async (type) => {
+    try {
+      setExporting(type);
+      setSaveError("");
+
+      if (type === "pdf") {
+        await exportCustomersPDF();
+      } else {
+        await exportCustomersExcel();
+      }
+    } catch (error) {
+      setSaveError(
+        error.response?.data?.message ||
+          error.message ||
+          "حدث خطأ أثناء تصدير البيانات",
+      );
+    } finally {
+      setExporting("");
+    }
+  };
+
   // Filter contacts
   const filtered = useMemo(() => {
     return contacts.filter((c) => {
-      const matchesSource = source === "all" || c.source === source;
+     const selectedSource = sources.find((item) => String(item.id) === source);
+
+     const contactSourceId =
+       c.source_id ??
+       c.sourceId ??
+       c.raw?.source?.id ??
+       (typeof c.source === "object" ? c.source?.id : null);
+
+     const contactSourceName =
+       typeof c.source === "string"
+         ? c.source
+         : c.source?.name || c.raw?.source?.name;
+
+     const matchesSource =
+       source === "all" ||
+       String(contactSourceId ?? "") === source ||
+       contactSourceName === selectedSource?.name;
 
       const matchesStatus = status === "all" || c.status === status;
-
       const matchesOwner = owner === "all" || c.owner === owner;
-
       const matchesAttention = !attn || needsAttention(c);
 
       const matchesSearch =
         !q ||
-        `${c.name} ${c.phone} ${c.email}`
+        `${c.name || ""} ${c.phone || ""} ${c.email || ""}`
           .toLowerCase()
           .includes(q.trim().toLowerCase());
 
@@ -247,33 +314,6 @@ export default function Contacts() {
     </>
   );
 
-  // Export CSV
-  const exportCsv = () => {
-    downloadCsv(
-      "contacts.csv",
-      [
-        "الاسم",
-        "الهاتف",
-        "البريد الإلكتروني",
-        "العنوان",
-        "المسؤول",
-        "المصدر",
-        "الحالة",
-        "آخر تواصل",
-      ],
-      filtered.map((c) => [
-        c.name,
-        c.phone,
-        c.email,
-        c.address,
-        c.owner,
-        c.source,
-        c.status,
-        c.last,
-      ]),
-    );
-  };
-
   // Table columns
   const columns = [
     {
@@ -286,7 +326,6 @@ export default function Contacts() {
         </div>
       ),
     },
-
     {
       key: "contact",
       label: "بيانات التواصل",
@@ -299,25 +338,29 @@ export default function Contacts() {
         </div>
       ),
     },
-
     {
       key: "owner",
       label: "المسؤول",
-      render: (c) => c.owner,
+      render: (c) => c.owner || "—",
     },
-
     {
       key: "source",
       label: "المصدر",
-      render: (c) => c.source,
+      render: (c) =>
+        c.source?.name ||
+        sources.find(
+          (item) => String(item.id) === String(c.source_id ?? c.sourceId ?? ""),
+        )?.name ||
+        c.source ||
+        "—",
     },
-
     {
       key: "status",
       label: "الحالة",
-      render: (c) => <Badge tone={TONE[c.status] || "gray"}>{c.status}</Badge>,
+      render: (c) => (
+        <Badge tone={TONE[c.status] || "gray"}>{c.status || "—"}</Badge>
+      ),
     },
-
     {
       key: "last",
       label: "آخر تواصل",
@@ -327,7 +370,6 @@ export default function Contacts() {
         </span>
       ),
     },
-
     {
       key: "act",
       label: "إجراء",
@@ -377,11 +419,20 @@ export default function Contacts() {
       >
         <button
           className={btnLight}
-          onClick={exportCsv}
-          disabled={loading || contacts.length === 0}
+          onClick={() => handleExport("excel")}
+          disabled={loading || contacts.length === 0 || exporting !== ""}
         >
           <Download size={13} />
-          تصدير Excel
+          {exporting === "excel" ? "جاري التصدير..." : "تصدير Excel"}
+        </button>
+
+        <button
+          className={btnLight}
+          onClick={() => handleExport("pdf")}
+          disabled={loading || contacts.length === 0 || exporting !== ""}
+        >
+          <Download size={13} />
+          {exporting === "pdf" ? "جاري التصدير..." : "تصدير PDF"}
         </button>
 
         <button className={btnDark} onClick={openCreateForm}>
@@ -426,9 +477,15 @@ export default function Contacts() {
               </Select>
             </div>
 
-            <div className="w-[140px]">
+            <div className="w-[160px]">
               <Select value={source} onChange={setSource}>
-                {opt("كل المصادر", SOURCES)}
+                <option value="all">كل المصادر</option>
+
+                {sources.map((item) => (
+                  <option key={item.id} value={String(item.id)}>
+                    {item.name}
+                  </option>
+                ))}
               </Select>
             </div>
 
@@ -444,6 +501,19 @@ export default function Contacts() {
               </Select>
             </div>
           </div>
+
+          {sourcesError && (
+            <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50 p-3 text-xs text-orange-700">
+              <span>{sourcesError}</span>
+              <button
+                onClick={loadSources}
+                disabled={sourcesLoading}
+                className="font-semibold underline"
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          )}
 
           {/* Statistics */}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -568,13 +638,15 @@ export default function Contacts() {
       {showForm && (
         <ContactForm
           contact={editingContact}
+          sources={sources}
+          sourcesLoading={sourcesLoading}
           saving={saving}
           onClose={closeForm}
           onSave={handleSave}
         />
       )}
 
-      {/* Save / Delete Error */}
+      {/* Save / Delete / Export Error */}
       {saveError && (
         <div className="fixed bottom-5 left-5 z-[100] max-w-sm rounded-xl border border-red-200 bg-white p-4 text-sm text-red-600 shadow-lg">
           {saveError}

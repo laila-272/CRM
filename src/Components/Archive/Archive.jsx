@@ -7,6 +7,7 @@ import {
   Trash2,
   Undo2,
 } from "lucide-react";
+
 import {
   PageHeader,
   SearchBox,
@@ -17,30 +18,72 @@ import {
   th,
   td,
 } from "../Shared/ui.jsx";
+
 import { Toast, useToast } from "../CRMPages/TaskModal.jsx";
+
 import {
-  RETENTION_DAYS,
-  SOON_DAYS,
-  TYPES,
-  daysLeft,
-  daysSince,
-  loadArchive,
-  saveArchive,
-} from "../../data/Archive.js";
+  getDeletedCustomers,
+  restoreCustomer,
+  forceDeleteCustomer,
+} from "../../Services/contactService.js";
+
+const RETENTION_DAYS = 30;
+const SOON_DAYS = 7;
 
 const PREVIEW = 8;
 const PAGE_SIZE = 10;
+
 const CHIPS = [
   ["all", "كل العناصر"],
   ["clients", "العملاء"],
-  ["deals", "الصفقات"],
-  ["contracts", "العقود"],
-  ["products", "المنتجات"],
-  ["leads", "العملاء المحتملون"],
 ];
 
 /* ---------- helpers ---------- */
-const fmtStamp = (iso, time) => `${iso.replaceAll("-", "/")} · ${time}`;
+
+const getDeletedDate = (item) => {
+  return item.deleted_at ? new Date(item.deleted_at) : null;
+};
+
+const daysSince = (item) => {
+  const deletedDate = getDeletedDate(item);
+
+  if (!deletedDate || Number.isNaN(deletedDate.getTime())) {
+    return 0;
+  }
+
+  const now = new Date();
+
+  const deleted = new Date(
+    deletedDate.getFullYear(),
+    deletedDate.getMonth(),
+    deletedDate.getDate(),
+  );
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return Math.max(0, Math.floor((today - deleted) / (1000 * 60 * 60 * 24)));
+};
+
+const daysLeft = (item) => {
+  return Math.max(0, RETENTION_DAYS - daysSince(item));
+};
+
+const fmtStamp = (value) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "-";
+
+  const dateText = date.toLocaleDateString("en-GB");
+  const timeText = date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${dateText} · ${timeText}`;
+};
+
 const daysText = (n) =>
   n === 1
     ? "يوم واحد"
@@ -51,20 +94,24 @@ const daysText = (n) =>
         : `${n} يومًا`;
 
 /* ---------- local pieces ---------- */
+
 function ArchiveStat({ icon: Icon, label, value, note, tone = "gray" }) {
   const tones = {
     gray: "text-neutral-500",
     green: "text-green-600",
     orange: "text-orange-600",
   };
+
   return (
     <div className={`${card} p-5`}>
       <div className="flex items-start justify-between gap-2">
         <span className="text-[12px] font-semibold text-ink">{label}</span>
+
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-line text-neutral-500">
           <Icon size={14} />
         </span>
       </div>
+
       <div
         className="mt-4 text-[26px] font-bold leading-none text-ink"
         dir="ltr"
@@ -72,6 +119,7 @@ function ArchiveStat({ icon: Icon, label, value, note, tone = "gray" }) {
       >
         {value}
       </div>
+
       <div className={`mt-3 text-[10.5px] ${tones[tone]}`}>{note}</div>
     </div>
   );
@@ -94,12 +142,15 @@ function FilterChip({ active, onClick, children }) {
   );
 }
 
-function ConfirmDialog({ item, onConfirm, onClose }) {
+function ConfirmDialog({ item, onConfirm, onClose, loading }) {
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
+
     window.addEventListener("keydown", onKey);
+
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/45 p-4"
@@ -116,20 +167,25 @@ function ConfirmDialog({ item, onConfirm, onClose }) {
         <h2 id="del-title" className="text-[16px] font-semibold text-ink">
           حذف نهائي
         </h2>
+
         <p className="mt-2 text-[12px] leading-6 text-neutral-600">
           سيتم حذف «<b className="text-ink">{item.name}</b>» نهائيًا من النظام
           ولا يمكن استرجاعه بعد ذلك.
         </p>
+
         <div className="mt-5 flex items-center gap-2">
           <button
             onClick={() => onConfirm(item)}
-            className="h-9 rounded-full bg-red-600 px-5 text-[11.5px] font-semibold text-white hover:bg-red-700"
+            disabled={loading}
+            className="h-9 rounded-full bg-red-600 px-5 text-[11.5px] font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            حذف نهائيًا
+            {loading ? "جاري الحذف..." : "حذف نهائيًا"}
           </button>
+
           <button
             onClick={onClose}
-            className="h-9 rounded-full border border-line bg-white px-5 text-[11.5px] font-semibold text-ink hover:bg-neutral-50"
+            disabled={loading}
+            className="h-9 rounded-full border border-line bg-white px-5 text-[11.5px] font-semibold text-ink hover:bg-neutral-50 disabled:opacity-50"
           >
             إلغاء
           </button>
@@ -139,55 +195,183 @@ function ConfirmDialog({ item, onConfirm, onClose }) {
   );
 }
 
+/* ---------- Archive page ---------- */
+
 export default function Archive() {
-  const [items, setItems] = useState(loadArchive);
+  const [items, setItems] = useState([]);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [all, setAll] = useState(false);
   const [page, setPage] = useState(1);
+
   const [confirm, setConfirm] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [busyId, setBusyId] = useState(null);
+
   const [toast, notify] = useToast();
 
-  const update = (next) => setItems(saveArchive(next));
+  /* ---------- Fetch deleted customers ---------- */
 
-  /* statistics (all derived from the items) */
-  const thisWeek = items.filter((i) => daysSince(i.deletedAt) <= 6).length;
+  const fetchArchive = async () => {
+    try {
+      setLoading(true);
+
+      const data = await getDeletedCustomers();
+
+      setItems(
+        (Array.isArray(data) ? data : []).map((customer) => ({
+          ...customer,
+          type: "عميل",
+          by: customer.deleted_by?.name || "-",
+        })),
+      );
+    } catch (error) {
+      console.error("FETCH ARCHIVE ERROR:", error);
+
+      notify(
+        error.response?.data?.message ||
+          error.message ||
+          "حدث خطأ أثناء تحميل الأرشيف",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchArchive();
+  }, []);
+
+  /* ---------- Statistics ---------- */
+
+  const thisWeek = items.filter((item) => daysSince(item) <= 6).length;
+
   const lastWeek = items.filter(
-    (i) => daysSince(i.deletedAt) >= 7 && daysSince(i.deletedAt) <= 13,
+    (item) => daysSince(item) >= 7 && daysSince(item) <= 13,
   ).length;
-  const soon = items.filter((i) => daysLeft(i) <= SOON_DAYS).length;
+
+  const soon = items.filter((item) => daysLeft(item) <= SOON_DAYS).length;
+
   const restorable = items.length - soon;
+
   const diff = thisWeek - lastWeek;
 
+  /* ---------- Search and filters ---------- */
+
   const list = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    const type = TYPES[cat];
-    return items.filter(
-      (i) =>
-        (!type || i.type === type) &&
-        (!s || [i.name, i.type, i.by].some((v) => v.toLowerCase().includes(s))),
-    );
+    const search = q.trim().toLowerCase();
+
+    return items.filter((item) => {
+      const matchesCategory = cat === "all" || cat === "clients";
+
+      const searchableValues = [
+        item.name,
+        item.email,
+        item.phone,
+        item.type,
+        item.by,
+      ];
+
+      const matchesSearch =
+        !search ||
+        searchableValues.some((value) =>
+          String(value || "")
+            .toLowerCase()
+            .includes(search),
+        );
+
+      return matchesCategory && matchesSearch;
+    });
   }, [items, q, cat]);
 
   const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+
   const cur = Math.min(page, pages);
+
   const rows = all
     ? list.slice((cur - 1) * PAGE_SIZE, cur * PAGE_SIZE)
     : list.slice(0, PREVIEW);
+
   const from = list.length ? (cur - 1) * PAGE_SIZE + 1 : 0;
-  const reset = (fn) => (v) => {
-    fn(v);
+
+  const reset = (fn) => (value) => {
+    fn(value);
     setPage(1);
   };
 
-  const restore = (item) => {
-    update(items.filter((i) => i.id !== item.id));
-    notify(`تم استرجاع «${item.name}»`);
+  /* ---------- Restore customer ---------- */
+
+  const restore = async (item) => {
+    try {
+      setBusyId(item.id);
+
+      await restoreCustomer(item.id);
+
+      setItems((prev) => prev.filter((customer) => customer.id !== item.id));
+
+      notify(`تم استرجاع «${item.name}» بنجاح`);
+    } catch (error) {
+      console.error("RESTORE CUSTOMER ERROR:", error);
+
+      notify(
+        error.response?.data?.message || error.message || "فشل استرجاع العميل",
+      );
+    } finally {
+      setBusyId(null);
+    }
   };
-  const destroy = (item) => {
-    update(items.filter((i) => i.id !== item.id));
-    setConfirm(null);
-    notify("تم الحذف نهائيًا");
+
+  /* ---------- Permanently delete customer ---------- */
+
+  const destroy = async (item) => {
+    try {
+      setActionLoading(true);
+
+      await forceDeleteCustomer(item.id);
+
+      setItems((prev) => prev.filter((customer) => customer.id !== item.id));
+
+      setConfirm(null);
+
+      notify("تم حذف العميل نهائيًا بنجاح");
+    } catch (error) {
+      console.error("FORCE DELETE CUSTOMER ERROR:", error);
+
+      notify(
+        error.response?.data?.message ||
+          error.message ||
+          "فشل حذف العميل نهائيًا",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /* ---------- Export ---------- */
+
+  const exportArchive = () => {
+    downloadCsv(
+      "archive.csv",
+      [
+        "اسم العميل",
+        "النوع",
+        "حذف بواسطة",
+        "تاريخ الحذف",
+        "المتبقي (يوم)",
+        "الإيميل",
+        "رقم الهاتف",
+      ],
+      list.map((item) => [
+        item.name,
+        item.type,
+        item.by,
+        fmtStamp(item.deleted_at),
+        daysLeft(item),
+        item.email || "",
+        item.phone || "",
+      ]),
+    );
   };
 
   return (
@@ -197,24 +381,16 @@ export default function Archive() {
         subtitle={`كل ما يتم حذفه من النظام يُحفظ هنا لمدة ${RETENTION_DAYS} يومًا — يمكنك استرجاعه أو حذفه نهائيًا.`}
       >
         <button
-          onClick={() =>
-            downloadCsv(
-              "archive.csv",
-              ["العنصر", "النوع", "حذف بواسطة", "تاريخ الحذف", "المتبقي (يوم)"],
-              list.map((i) => [
-                i.name,
-                i.type,
-                i.by,
-                fmtStamp(i.deletedAt, i.time),
-                daysLeft(i),
-              ]),
-            )
-          }
-          className={btnLight}
+          onClick={exportArchive}
+          disabled={!list.length}
+          className={`${btnLight} disabled:cursor-not-allowed disabled:opacity-50`}
         >
-          <Download size={12} /> تصدير البيانات
+          <Download size={12} />
+          تصدير البيانات
         </button>
       </PageHeader>
+
+      {/* Statistics */}
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <ArchiveStat
@@ -224,6 +400,7 @@ export default function Archive() {
           note={`منذ آخر ${RETENTION_DAYS} يومًا`}
           tone="orange"
         />
+
         <ArchiveStat
           icon={ArrowUp}
           label="محذوفة هذا الأسبوع"
@@ -234,6 +411,7 @@ export default function Archive() {
               : `${diff > 0 ? "+" : "−"}${Math.abs(diff)} عن الأسبوع الماضي`
           }
         />
+
         <ArchiveStat
           icon={ArrowDown}
           label="قابلة للاسترجاع"
@@ -241,6 +419,7 @@ export default function Archive() {
           note={`خلال ${RETENTION_DAYS} يومًا من الحذف`}
           tone="green"
         />
+
         <ArchiveStat
           icon={Repeat}
           label="تحذف نهائيًا قريبًا"
@@ -250,6 +429,8 @@ export default function Archive() {
         />
       </div>
 
+      {/* Search and filters */}
+
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <SearchBox
           value={q}
@@ -257,12 +438,13 @@ export default function Archive() {
           placeholder="ابحث في الأرشيف..."
           className="w-full sm:w-[280px]"
         />
+
         <div className="flex flex-wrap gap-1.5">
-          {CHIPS.map(([k, label]) => (
+          {CHIPS.map(([key, label]) => (
             <FilterChip
-              key={k}
-              active={cat === k}
-              onClick={() => reset(setCat)(k)}
+              key={key}
+              active={cat === key}
+              onClick={() => reset(setCat)(key)}
             >
               {label}
             </FilterChip>
@@ -270,16 +452,20 @@ export default function Archive() {
         </div>
       </div>
 
+      {/* Deleted customers table */}
+
       <section className={`${card} mt-4 overflow-hidden`}>
         <div className="flex flex-wrap items-start justify-between gap-2 p-5 pb-3">
           <div>
             <h2 className="text-[16px] font-semibold text-ink">
               العناصر المحذوفة
             </h2>
+
             <p className="mt-0.5 text-[10.5px] text-neutral-500">
-              آخر العناصر التي تم حذفها من النظام.
+              آخر العملاء الذين تم حذفهم من النظام.
             </p>
           </div>
+
           {list.length > PREVIEW && (
             <button
               type="button"
@@ -305,74 +491,113 @@ export default function Archive() {
                   "تاريخ الحذف",
                   "يُحذف نهائيًا خلال",
                   "الإجراءات",
-                ].map((h) => (
-                  <th key={h} className={th}>
-                    {h}
+                ].map((heading) => (
+                  <th key={heading} className={th}>
+                    {heading}
                   </th>
                 ))}
               </tr>
             </thead>
+
             <tbody>
-              {rows.map((i) => {
-                const left = daysLeft(i);
-                return (
-                  <tr
-                    key={i.id}
-                    className="border-b border-line last:border-0 hover:bg-neutral-50/60"
-                  >
-                    <td className={`${td} !py-3 text-[12px]`}>{i.name}</td>
-                    <td className={td}>
-                      <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] text-neutral-600">
-                        {i.type}
-                      </span>
-                    </td>
-                    <td className={td}>{i.by}</td>
-                    <td
-                      className={`${td} text-neutral-600`}
-                      dir="ltr"
-                      style={{ textAlign: "right" }}
-                    >
-                      {fmtStamp(i.deletedAt, i.time)}
-                    </td>
-                    <td
-                      className={`${td} ${left <= SOON_DAYS ? "font-semibold text-red-500" : "text-neutral-600"}`}
-                    >
-                      {daysText(left)}
-                    </td>
-                    <td className={td}>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => restore(i)}
-                          className="h-7 rounded-md border border-line bg-white px-3 text-[10.5px] font-semibold text-ink hover:bg-neutral-50"
-                        >
-                          استرجاع
-                        </button>
-                        <button
-                          onClick={() => setConfirm(i)}
-                          aria-label={`حذف ${i.name} نهائيًا`}
-                          className="grid h-6 w-6 place-items-center rounded-md border border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              {!rows.length && (
+              {loading ? (
                 <tr>
                   <td
                     colSpan={6}
                     className="p-10 text-center text-[11px] text-neutral-400"
                   >
-                    لا توجد عناصر مطابقة
+                    جاري تحميل الأرشيف...
                   </td>
                 </tr>
+              ) : (
+                <>
+                  {rows.map((item) => {
+                    const left = daysLeft(item);
+                    const isBusy = busyId === item.id;
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className="border-b border-line last:border-0 hover:bg-neutral-50/60"
+                      >
+                        <td className={`${td} !py-3 text-[12px]`}>
+                          <div className="font-medium text-ink">
+                            {item.name}
+                          </div>
+                          {item.email && (
+                            <div className="mt-1 text-[10px] text-neutral-400">
+                              {item.email}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className={td}>
+                          <span className="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[10px] text-neutral-600">
+                            {item.type}
+                          </span>
+                        </td>
+
+                        <td className={td}>{item.by}</td>
+
+                        <td
+                          className={`${td} text-neutral-600`}
+                          dir="ltr"
+                          style={{ textAlign: "right" }}
+                        >
+                          {fmtStamp(item.deleted_at)}
+                        </td>
+
+                        <td
+                          className={`${td} ${
+                            left <= SOON_DAYS
+                              ? "font-semibold text-red-500"
+                              : "text-neutral-600"
+                          }`}
+                        >
+                          {daysText(left)}
+                        </td>
+
+                        <td className={td}>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => restore(item)}
+                              disabled={isBusy || actionLoading}
+                              className="h-7 rounded-md border border-line bg-white px-3 text-[10.5px] font-semibold text-ink hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {isBusy ? "جاري الاسترجاع..." : "استرجاع"}
+                            </button>
+
+                            <button
+                              onClick={() => setConfirm(item)}
+                              disabled={isBusy || actionLoading}
+                              aria-label={`حذف ${item.name} نهائيًا`}
+                              className="grid h-6 w-6 place-items-center rounded-md border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 disabled:opacity-50"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {!rows.length && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="p-10 text-center text-[11px] text-neutral-400"
+                      >
+                        لا توجد عناصر مطابقة
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>
         </div>
-        {all && (
+
+        {all && !loading && (
           <PagerBar
             page={cur}
             pages={pages}
@@ -382,13 +607,19 @@ export default function Archive() {
         )}
       </section>
 
+      {/* Confirm permanent delete */}
+
       {confirm && (
         <ConfirmDialog
           item={confirm}
           onConfirm={destroy}
-          onClose={() => setConfirm(null)}
+          loading={actionLoading}
+          onClose={() => {
+            if (!actionLoading) setConfirm(null);
+          }}
         />
       )}
+
       <Toast message={toast} />
     </div>
   );
