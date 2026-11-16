@@ -33,6 +33,12 @@ import {
   forceDeleteLead,
 } from "../../Services/leadService.js";
 
+import {
+  getDeletedDeals,
+  restoreDeal,
+  forceDeleteDeal,
+} from "../../Services/dealService.js";
+
 const RETENTION_DAYS = 30;
 const SOON_DAYS = 7;
 
@@ -43,6 +49,7 @@ const CHIPS = [
   ["all", "كل العناصر"],
   ["customers", "العملاء"],
   ["leads", "العملاء المحتملون"],
+  ["deals", "الصفقات"],
 ];
 
 /* ---------- helpers ---------- */
@@ -223,16 +230,18 @@ export default function Archive() {
 
   const [toast, notify] = useToast();
 
-  /* ---------- Fetch deleted customers and leads ---------- */
+  /* ---------- Fetch deleted customers, leads and deals ---------- */
 
   const fetchArchive = async () => {
     try {
       setLoading(true);
 
-      const [customersResponse, leadsResponse] = await Promise.all([
-        getDeletedCustomers(),
-        getDeletedLeads(),
-      ]);
+      const [customersResponse, leadsResponse, dealsResponse] =
+        await Promise.all([
+          getDeletedCustomers(),
+          getDeletedLeads(),
+          getDeletedDeals(),
+        ]);
 
       const getArray = (response) => {
         if (Array.isArray(response)) return response;
@@ -257,7 +266,14 @@ export default function Archive() {
         by: lead.deleted_by?.name || "-",
       }));
 
-      const combined = [...customers, ...leads].sort(
+      const deals = getArray(dealsResponse).map((deal) => ({
+        ...deal,
+        type: "صفقة",
+        entityType: "deal",
+        by: deal.deleted_by?.name || "-",
+      }));
+
+      const combined = [...customers, ...leads, ...deals].sort(
         (a, b) => new Date(b.deleted_at || 0) - new Date(a.deleted_at || 0),
       );
 
@@ -302,10 +318,12 @@ export default function Archive() {
       const matchesCategory =
         cat === "all" ||
         (cat === "customers" && item.entityType === "customer") ||
-        (cat === "leads" && item.entityType === "lead");
+        (cat === "leads" && item.entityType === "lead") ||
+        (cat === "deals" && item.entityType === "deal");
 
       const searchableValues = [
         item.name,
+        item.number,
         item.email,
         item.phone,
         item.type,
@@ -339,7 +357,7 @@ export default function Archive() {
     setPage(1);
   };
 
-  /* ---------- Restore customer or lead ---------- */
+  /* ---------- Restore customer, lead or deal ---------- */
 
   const restore = async (item) => {
     const busyKey = `${item.entityType}-${item.id}`;
@@ -349,16 +367,18 @@ export default function Archive() {
 
       if (item.entityType === "lead") {
         await restoreLead(item.id);
+      } else if (item.entityType === "deal") {
+        await restoreDeal(item.id);
       } else {
         await restoreCustomer(item.id);
       }
 
       setItems((prev) =>
         prev.filter(
-          (customer) =>
+          (current) =>
             !(
-              customer.entityType === item.entityType &&
-              String(customer.id) === String(item.id)
+              current.entityType === item.entityType &&
+              String(current.id) === String(item.id)
             ),
         ),
       );
@@ -375,7 +395,7 @@ export default function Archive() {
     }
   };
 
-  /* ---------- Permanently delete customer or lead ---------- */
+  /* ---------- Permanently delete customer, lead or deal ---------- */
 
   const destroy = async (item) => {
     try {
@@ -383,16 +403,18 @@ export default function Archive() {
 
       if (item.entityType === "lead") {
         await forceDeleteLead(item.id);
+      } else if (item.entityType === "deal") {
+        await forceDeleteDeal(item.id);
       } else {
         await forceDeleteCustomer(item.id);
       }
 
       setItems((prev) =>
         prev.filter(
-          (customer) =>
+          (current) =>
             !(
-              customer.entityType === item.entityType &&
-              String(customer.id) === String(item.id)
+              current.entityType === item.entityType &&
+              String(current.id) === String(item.id)
             ),
         ),
       );
@@ -421,6 +443,7 @@ export default function Archive() {
       [
         "اسم العنصر",
         "النوع",
+        "رقم الصفقة",
         "حذف بواسطة",
         "تاريخ الحذف",
         "المتبقي (يوم)",
@@ -430,6 +453,7 @@ export default function Archive() {
       list.map((item) => [
         item.name,
         item.type,
+        item.number || "",
         item.by,
         fmtStamp(item.deleted_at),
         daysLeft(item),
@@ -517,7 +541,7 @@ export default function Archive() {
         </div>
       </div>
 
-      {/* Archived customers and leads table */}
+      {/* Archived customers, leads and deals table */}
 
       <section className={`${card} mt-4 overflow-hidden`}>
         <div className="flex flex-wrap items-start justify-between gap-2 p-5 pb-3">
@@ -527,7 +551,7 @@ export default function Archive() {
             </h2>
 
             <p className="mt-0.5 text-[10.5px] text-neutral-500">
-              آخر العملاء والعملاء المحتملين الذين تم حذفهم من النظام.
+              آخر العملاء والعملاء المحتملين والصفقات التي تم حذفها من النظام.
             </p>
           </div>
 
@@ -591,6 +615,22 @@ export default function Archive() {
                             {item.name}
                           </div>
 
+                          {item.entityType === "deal" && (
+                            <div className="mt-1 text-[10px] text-neutral-400">
+                              رقم الصفقة: {item.number || "-"}
+                            </div>
+                          )}
+
+                          {item.entityType === "deal" && (
+                            <div className="mt-1 text-[10px] text-neutral-400">
+                              القيمة:{" "}
+                              {Number(item.net_value || 0).toLocaleString(
+                                "en-US",
+                              )}{" "}
+                              EGP
+                            </div>
+                          )}
+
                           {item.email && (
                             <div className="mt-1 text-[10px] text-neutral-400">
                               {item.email}
@@ -603,7 +643,9 @@ export default function Archive() {
                             className={`rounded-full px-2.5 py-0.5 text-[10px] ${
                               item.entityType === "lead"
                                 ? "bg-orange-50 text-orange-700"
-                                : "bg-neutral-100 text-neutral-600"
+                                : item.entityType === "deal"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "bg-neutral-100 text-neutral-600"
                             }`}
                           >
                             {item.type}

@@ -1,23 +1,73 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ChevronDown, MessageCircle, Pencil } from "lucide-react";
 import {
-  getDeal,
-  updateDeal,
-  STAGES,
-  CLOSING_STAGE,
-  money,
-} from "../../data/deals.js";
+  ChevronDown,
+  Pencil,
+  Save,
+  X,
+  LoaderCircle,
+  RefreshCw,
+} from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
-const NOTE_TYPES = ["ملاحظة", "اجتماع", "إيميل", "واتساب", "مكالمة"];
+import {
+  getDealById,
+  updateDeal,
+  createDealCommunication,
+} from "../../Services/dealService.js";
 
-const nowLabel = () =>
-  "اليوم " +
-  new Date().toLocaleTimeString("ar-EG", {
-    hour: "2-digit",
-    minute: "2-digit",
+import CommunicationLog from "../Shared/communication/CommunicationLog.jsx";
+
+/* ---------- Constants ---------- */
+
+const STAGES = [
+  { value: "new_customer", label: "عميل جديد" },
+  { value: "initial_contact", label: "تواصل أولي" },
+  { value: "meeting", label: "اجتماع / عرض" },
+  { value: "negotiation", label: "تفاوض" },
+  { value: "contracted", label: "تعاقد" },
+];
+
+const DEAL_TYPES = {
+  existing_business: "عميل حالي",
+  renewal: "تجديد",
+  new_business: "عميل جديد",
+  upsell: "بيع إضافي",
+};
+
+const COMMISSION_STATUSES = {
+  paid: "مدفوعة",
+  pending: "قيد الانتظار",
+  approved: "معتمدة",
+};
+
+/* ---------- Helpers ---------- */
+
+const formatDate = (date) => {
+  if (!date) return "غير محدد";
+
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) return date;
+
+  return parsed.toLocaleDateString("ar-EG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
+};
+
+const money = (value) =>
+  new Intl.NumberFormat("ar-EG", {
+    style: "currency",
+    currency: "EGP",
+    maximumFractionDigits: 2,
+  }).format(Number(value) || 0);
+
+const getErrorMessage = (error) =>
+  error?.response?.data?.message || error?.message || "حدث خطأ، حاول مرة أخرى.";
+
+/* ---------- UI Components ---------- */
 
 function Card({ title, children, className = "" }) {
   return (
@@ -27,6 +77,7 @@ function Card({ title, children, className = "" }) {
       {title && (
         <h2 className="text-[13px] font-extrabold text-ink mb-3.5">{title}</h2>
       )}
+
       {children}
     </section>
   );
@@ -36,11 +87,12 @@ function Field({ label, value }) {
   return (
     <div className="min-w-0">
       <div className="text-[9.5px] text-neutral-400">{label}</div>
+
       <div
         className="mt-1 text-[11.5px] font-bold text-ink break-words"
         dir="rtl"
       >
-        {value}
+        {value || "غير متوفر"}
       </div>
     </div>
   );
@@ -50,6 +102,7 @@ function Metric({ label, value, sub, subCls = "text-neutral-400" }) {
   return (
     <div className="bg-white border border-line rounded-xl p-4">
       <div className="text-[10.5px] text-neutral-500">{label}</div>
+
       <div
         className="mt-2 text-[24px] leading-none font-extrabold text-ink"
         dir="ltr"
@@ -57,16 +110,280 @@ function Metric({ label, value, sub, subCls = "text-neutral-400" }) {
       >
         {value}
       </div>
+
       <div className={`mt-2 text-[9.5px] ${subCls}`}>{sub}</div>
     </div>
   );
 }
 
+/* ---------- Deal Details ---------- */
+
 export default function DealDetails() {
   const { id } = useParams();
-  const [deal, setDeal] = useState(() => getDeal(id));
-  const [noteType, setNoteType] = useState(NOTE_TYPES[0]);
-  const [text, setText] = useState("");
+
+  const [deal, setDeal] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [saving, setSaving] = useState(false);
+  const [savingCommunication, setSavingCommunication] = useState(false);
+
+  const [editing, setEditing] = useState(false);
+  const [menu, setMenu] = useState(false);
+
+  const [editForm, setEditForm] = useState({
+    stage: "",
+    closing_probability: "",
+    value: "",
+    notes: "",
+  });
+
+  // Fetch deal details
+  const loadDeal = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getDealById(id);
+
+      setDeal(data);
+
+      setEditForm({
+        stage: data.stage || "new_customer",
+        closing_probability: data.closing_probability ?? 0,
+        value: data.value ?? 0,
+        notes: data.notes || "",
+      });
+    } catch (err) {
+      console.error("LOAD DEAL ERROR:", err);
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    loadDeal();
+  }, [loadDeal]);
+
+  // Commission
+  const commission = useMemo(() => {
+    if (!deal) return 0;
+
+    return Number(deal.expected_commission) || 0;
+  }, [deal]);
+
+  const commissionRate = Number(deal?.commissions?.[0]?.commission_rate || 0);
+
+  const currentStageIndex = STAGES.findIndex(
+    (stage) => stage.value === deal?.stage,
+  );
+
+  const customer = deal?.customer || {};
+  const assignedTo = deal?.assigned_to || {};
+  const partner = deal?.partner;
+  const commissions = deal?.commissions || [];
+
+  const phone = String(customer.phone || "");
+  const whatsappNumber = phone.replace(/\D/g, "");
+
+  // Edit form
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Update deal
+  const handleSaveDeal = async () => {
+    try {
+      setSaving(true);
+      setError("");
+
+      const payload = {
+        stage: editForm.stage,
+        closing_probability: Number(editForm.closing_probability),
+        value: Number(editForm.value),
+        notes: editForm.notes,
+      };
+
+      const updatedDeal = await updateDeal(id, payload);
+
+      setDeal((prev) => ({
+        ...prev,
+        ...updatedDeal,
+      }));
+
+      setEditForm({
+        stage: updatedDeal.stage,
+        closing_probability: updatedDeal.closing_probability,
+        value: updatedDeal.value,
+        notes: updatedDeal.notes || "",
+      });
+
+      setEditing(false);
+    } catch (err) {
+      console.error("SAVE DEAL ERROR:", err);
+      setError(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Move deal to another stage
+  const handleMoveStage = async (nextStage) => {
+    if (!deal || nextStage === deal.stage || saving) return;
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const payload = {
+        stage: nextStage,
+        closing_probability:
+          nextStage === "contracted"
+            ? 100
+            : Number(deal.closing_probability) || 0,
+        value: Number(deal.value) || 0,
+        notes: deal.notes || "",
+      };
+
+      const updatedDeal = await updateDeal(id, payload);
+
+      setDeal((prev) => ({
+        ...prev,
+        ...updatedDeal,
+      }));
+
+      setEditForm({
+        stage: updatedDeal.stage,
+        closing_probability: updatedDeal.closing_probability,
+        value: updatedDeal.value,
+        notes: updatedDeal.notes || "",
+      });
+    } catch (err) {
+      console.error("MOVE DEAL STAGE ERROR:", err);
+      setError(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Add communication
+  const handleAddCommunication = async (communication) => {
+    try {
+      setSavingCommunication(true);
+      setError("");
+
+      const newCommunication = await createDealCommunication(id, communication);
+
+      setDeal((prev) => ({
+        ...prev,
+        communication_logs: [
+          newCommunication,
+          ...(prev.communication_logs || []),
+        ],
+      }));
+
+      return true;
+    } catch (err) {
+      console.error(
+        "ADD DEAL COMMUNICATION ERROR:",
+        err.response?.data || err.message,
+      );
+
+      setError(getErrorMessage(err));
+
+      return false;
+    } finally {
+      setSavingCommunication(false);
+    }
+  };
+
+  // Export deal CSV
+  const exportDeal = () => {
+    if (!deal) return;
+
+    const rows = [
+      ["رقم الصفقة", deal.number],
+      ["اسم الصفقة", deal.name],
+      ["نوع الصفقة", DEAL_TYPES[deal.type] || deal.type],
+      ["المرحلة", deal.stage_label],
+      ["قيمة الصفقة", deal.value],
+      ["الخصم", deal.discount],
+      ["صافي القيمة", deal.net_value],
+      ["احتمالية الإغلاق", deal.closing_probability],
+      ["الإغلاق المتوقع", deal.expected_close_date],
+      ["العمولة المتوقعة", deal.expected_commission],
+      ["العميل", customer.name],
+      ["الهاتف", customer.phone],
+      ["البريد الإلكتروني", customer.email],
+      ["المسؤول", assignedTo.name],
+      ["الشريك", partner?.name || ""],
+    ];
+
+    const csvContent =
+      "\uFEFF" +
+      rows
+        .map((row) =>
+          row
+            .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
+            .join(","),
+        )
+        .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${deal.number || "deal"}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+    setMenu(false);
+  };
+
+  // Loading
+  if (loading) {
+    return (
+      <div
+        dir="rtl"
+        className="min-h-[300px] flex flex-col items-center justify-center gap-3 text-neutral-500"
+      >
+        <LoaderCircle className="animate-spin" size={28} />
+        <p className="text-[12px]">جاري تحميل بيانات الصفقة...</p>
+      </div>
+    );
+  }
+
+  // Error
+  if (error && !deal) {
+    return (
+      <div dir="rtl" className="p-10 text-center">
+        <p className="text-[13px] font-bold text-red-600">{error}</p>
+
+        <button onClick={loadDeal} className="mt-4 btn btn-dark">
+          <RefreshCw size={13} />
+          إعادة المحاولة
+        </button>
+
+        <Link to="/deals" className="block mt-4 text-[11px] text-neutral-500">
+          العودة إلى الصفقات
+        </Link>
+      </div>
+    );
+  }
 
   if (!deal) {
     return (
@@ -74,9 +391,7 @@ export default function DealDetails() {
         <p className="text-[13px] font-bold text-ink">
           لم يتم العثور على الصفقة
         </p>
-        <p className="mt-1 text-[11px] text-neutral-500">
-          قد تكون محذوفة أو أن الرابط غير صحيح.
-        </p>
+
         <Link
           to="/deals"
           className="inline-block mt-4 h-8 leading-8 rounded-full bg-ink text-white px-4 text-[11.5px]"
@@ -87,164 +402,251 @@ export default function DealDetails() {
     );
   }
 
-  const commission = (deal.value * deal.commissionRate) / 100;
-  const stage = deal.stage;
-
-  const moveStage = (next) => {
-    if (next === stage) return;
-    setDeal(
-      updateDeal(deal.id, (d) => ({
-        stage: next,
-        stageDates: STAGES.map((_, i) => d.stageDates[i])
-          .slice(0, next + 1)
-          .map((v, i) => v || "اليوم"),
-        updatedAt: nowLabel(),
-        log: [
-          {
-            id: Date.now(),
-            kind: "مرحلة",
-            text: `تم نقل الصفقة إلى مرحلة «${STAGES[next]}»`,
-            when: nowLabel(),
-            by: d.owner,
-            done: true,
-          },
-          ...d.log,
-        ],
-      })),
-    );
-  };
-
-  const saveNote = () => {
-    const t = text.trim();
-    if (!t) return;
-    setDeal(
-      updateDeal(deal.id, (d) => ({
-        updatedAt: nowLabel(),
-        notes: [
-          { id: Date.now(), kind: noteType, text: t, when: nowLabel() },
-          ...d.notes,
-        ],
-        log: [
-          {
-            id: Date.now() + 1,
-            kind: noteType,
-            text: t,
-            when: nowLabel(),
-            by: d.owner,
-            done: true,
-          },
-          ...d.log,
-        ],
-      })),
-    );
-    setText("");
-  };
-
-  const wa = `https://wa.me/2${deal.phone.replace(/^0/, "")}`;
-
   return (
-    <div dir="rtl" className=" max-w-full">
-      {" "}
+    <div dir="rtl" className="max-w-full">
+      {/* Breadcrumb */}
       <Link
         to="/deals"
         className="text-[10.5px] text-neutral-500 hover:text-ink"
       >
         → الصفقات
       </Link>
+
+      {error && (
+        <div className="mt-3 rounded-lg bg-red-50 border border-red-100 text-red-600 p-3 text-[11px]">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mt-2 flex flex-col-reverse lg:flex-row lg:items-start lg:justify-between gap-3">
-        <div className="flex flex-wrap gap-2 items-center lg:order-2 ">
-          <a
-            // href={wa}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="واتساب"
-            className="w-9 h-9 rounded-lg bg-green-500 text-white grid place-items-center hover:bg-green-600"
-          >
-            <FaWhatsapp size={20} />{" "}
-          </a>
+        <div className="flex flex-wrap gap-2 items-center lg:order-2">
+          {whatsappNumber && (
+            <a
+              href={`https://wa.me/${whatsappNumber}`}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="واتساب"
+              className="w-9 h-9 rounded-lg bg-green-500 text-white grid place-items-center hover:bg-green-600"
+            >
+              <FaWhatsapp size={20} />
+            </a>
+          )}
+
           <div className="relative">
-            <button className="btn" onClick={() => setMenu(!menu)}>
+            <button className="btn" onClick={() => setMenu((prev) => !prev)}>
               تصدير <ChevronDown size={12} />
             </button>
-            {/* {menu && (
-              <div className="absolute z-10 mt-1 card shadow-md min-w-[130px] text-[12px]">
+
+            {menu && (
+              <div className="absolute z-10 mt-1 left-0 bg-white border border-line rounded-lg shadow-md min-w-[130px] text-[12px]">
                 <button
                   className="w-full text-right px-3 py-2 hover:bg-neutral-50"
-                  onClick={exportOne}
+                  onClick={exportDeal}
                 >
                   ملف CSV
                 </button>
               </div>
-            )} */}
+            )}
           </div>
-          <button className="btn" onClick={() => setEditing(true)}>
-            <Pencil size={12} /> تعديل
+
+          <button className="btn" onClick={() => setEditing((prev) => !prev)}>
+            {editing ? <X size={12} /> : <Pencil size={12} />}
+            {editing ? "إلغاء التعديل" : "تعديل"}
           </button>
-          {/* <button
-            className="btn text-red-600"
-            onClick={() => setConfirmDel(true)}
-          >
-            <Trash2 size={12} /> حذف
-          </button> */}
+
           <button
             className="btn btn-dark !rounded-4xl"
-            onClick={() => {
-              updateCustomer(c.id, { status: "لا رد" });
-            }}
+            disabled={saving || deal.stage === "contracted"}
+            onClick={() => handleMoveStage("contracted")}
           >
-            + تحويل إلى تعاقد
+            {saving ? (
+              <LoaderCircle size={13} className="animate-spin" />
+            ) : (
+              "+ تحويل إلى تعاقد"
+            )}
           </button>
         </div>
 
         <div className="lg:order-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-[22px] font-extrabold text-ink leading-tight">
-              {deal.title}
+              {deal.name}
             </h1>
+
             <span className="text-[10px] font-semibold bg-orange-50 text-orange-600 rounded-full px-2.5 py-0.5">
-              {STAGES[stage]}
+              {STAGES.find((s) => s.value === deal.stage)?.label ||
+                deal.stage_label}
             </span>
           </div>
+
           <p className="mt-1.5 text-[10.5px] text-neutral-500">
-            العميل: {deal.customer} · {deal.company} · أنشئت {deal.createdAt} ·
-            آخر تحديث {deal.updatedAt}
+            العميل: {customer.name || "غير محدد"} · رقم الصفقة: {deal.number} ·
+            أنشئت {formatDate(deal.created_at)} · آخر تحديث{" "}
+            {formatDate(deal.updated_at)}
           </p>
         </div>
       </div>
+
+      {/* Edit form */}
+      {editing && (
+        <Card title="تعديل بيانات الصفقة" className="mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-[10px] text-neutral-500 mb-1.5">
+                مرحلة الصفقة
+              </label>
+
+              <select
+                name="stage"
+                value={editForm.stage}
+                onChange={handleEditChange}
+                className="w-full h-9 rounded-lg border border-line px-2 text-[11px] outline-none"
+              >
+                {STAGES.map((stage) => (
+                  <option key={stage.value} value={stage.value}>
+                    {stage.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-neutral-500 mb-1.5">
+                احتمالية الإغلاق %
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                max="100"
+                name="closing_probability"
+                value={editForm.closing_probability}
+                onChange={handleEditChange}
+                className="w-full h-9 rounded-lg border border-line px-3 text-[11px] outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-neutral-500 mb-1.5">
+                قيمة الصفقة
+              </label>
+
+              <input
+                type="number"
+                min="0"
+                name="value"
+                value={editForm.value}
+                onChange={handleEditChange}
+                className="w-full h-9 rounded-lg border border-line px-3 text-[11px] outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-neutral-500 mb-1.5">
+                ملاحظات الصفقة
+              </label>
+
+              <input
+                name="notes"
+                value={editForm.notes}
+                onChange={handleEditChange}
+                className="w-full h-9 rounded-lg border border-line px-3 text-[11px] outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={handleSaveDeal}
+              disabled={saving}
+              className="h-8 rounded-lg bg-ink text-white px-4 text-[11px] font-semibold flex items-center gap-2 disabled:opacity-50"
+            >
+              {saving ? (
+                <LoaderCircle size={13} className="animate-spin" />
+              ) : (
+                <Save size={13} />
+              )}
+              حفظ التعديلات
+            </button>
+
+            <button
+              onClick={() => {
+                setEditing(false);
+                setEditForm({
+                  stage: deal.stage,
+                  closing_probability: deal.closing_probability,
+                  value: deal.value,
+                  notes: deal.notes || "",
+                });
+              }}
+              className="h-8 rounded-lg border border-line px-4 text-[11px]"
+            >
+              إلغاء
+            </button>
+          </div>
+        </Card>
+      )}
+
       {/* Metrics */}
       <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Metric
           label="احتمالية الإغلاق"
-          value={`${deal.probability}%`}
-          sub={deal.probability >= 70 ? "فرصة قوية (+70%)" : "فرصة متوسطة"}
+          value={`${deal.closing_probability ?? 0}%`}
+          sub={
+            Number(deal.closing_probability) >= 70
+              ? "فرصة قوية (+70%)"
+              : "فرصة متوسطة"
+          }
           subCls={
-            deal.probability >= 70 ? "text-orange-600" : "text-neutral-400"
+            Number(deal.closing_probability) >= 70
+              ? "text-orange-600"
+              : "text-neutral-400"
           }
         />
+
         <Metric
           label="قيمة الصفقة"
           value={money(deal.value)}
           sub={`عرض السعر رقم ${deal.number}`}
         />
+
         <Metric
           label="الإغلاق المتوقع"
-          value={deal.expectedClose}
-          sub={`بعد ${deal.ageDays} يومًا من الإنشاء`}
+          value={formatDate(deal.expected_close_date)}
+          sub={`تاريخ الإنشاء ${formatDate(deal.created_at)}`}
         />
+
         <Metric
           label="العمولة المتوقعة"
           value={money(commission)}
-          sub={`${deal.commissionRate}% من قيمة الصفقة`}
+          sub={
+            commissionRate
+              ? `${commissionRate}% من قيمة الصفقة`
+              : "حسب بيانات العمولة"
+          }
         />
       </div>
+
       {/* Pipeline */}
       <Card title="مرحلة الصفقة" className="mt-4">
         <div className="grid grid-cols-5 gap-2 sm:gap-3">
-          {STAGES.map((s, i) => {
-            const state = i < stage ? "done" : i === stage ? "current" : "todo";
+          {STAGES.map((stage, index) => {
+            const state =
+              index < currentStageIndex
+                ? "done"
+                : index === currentStageIndex
+                  ? "current"
+                  : "todo";
+
             return (
-              <div key={s} className="min-w-0">
+              <button
+                key={stage.value}
+                type="button"
+                disabled={saving}
+                onClick={() => handleMoveStage(stage.value)}
+                className="min-w-0 text-right"
+              >
                 <div
                   className={`h-1 rounded-full ${
                     state === "current"
@@ -254,165 +656,208 @@ export default function DealDetails() {
                         : "bg-neutral-200"
                   }`}
                 />
+
                 <div
-                  className={`mt-3 text-[11px] sm:text-[12px] font-bold truncate ${state === "todo" ? "text-neutral-400" : "text-ink"}`}
+                  className={`mt-3 text-[11px] sm:text-[12px] font-bold truncate ${
+                    state === "todo" ? "text-neutral-400" : "text-ink"
+                  }`}
                 >
-                  {s}
+                  {stage.label}
                 </div>
+
                 <div
-                  className={`mt-1 text-[9.5px] ${state === "current" ? "text-orange-600" : "text-neutral-400"}`}
+                  className={`mt-1 text-[9.5px] ${
+                    state === "current" ? "text-orange-600" : "text-neutral-400"
+                  }`}
                 >
                   {state === "current"
-                    ? "المرحلة الحالية - اليوم"
+                    ? "المرحلة الحالية"
                     : state === "done"
-                      ? deal.stageDates[i]
+                      ? "تمت"
                       : "المرحلة التالية"}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
+
         <div className="mt-4 rounded-lg bg-orange-50 text-orange-700 text-[10.5px] px-3 py-2">
-          الخطوة التالية: {deal.nextStep} · {deal.nextFollowUp}
+          المرحلة الحالية:{" "}
+          {STAGES.find((s) => s.value === deal.stage)?.label ||
+            deal.stage_label}
         </div>
       </Card>
+
       {/* Body */}
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_290px] gap-4 items-start">
-        {/* Main column */}
         <div className="space-y-4 min-w-0">
+          {/* Deal Information */}
           <Card title="بيانات الصفقة">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
-              <Field label="الاسم / الخدمة" value={deal.title} />
-              <Field label="نوع الصفقة" value={deal.type} />
-              <Field label="رقم الصفقة" value={deal.number} />
-              <Field label="شروط الدفع" value={deal.paymentTerms} />
-              <Field label="قيمة الصفقة" value={money(deal.value)} />
-              <Field label="الخصم" value="10%" />
+              <Field label="الاسم / الخدمة" value={deal.name} />
+
               <Field
-                label="عمولة الشركة"
-                value={`${deal.commissionRate}% - ${money(commission)}`}
+                label="نوع الصفقة"
+                value={DEAL_TYPES[deal.type] || deal.type}
               />
-              <Field label="المصدر" value={deal.source} />
+
+              <Field label="رقم الصفقة" value={deal.number} />
+
+              <Field label="شروط الدفع" value={deal.payment_terms} />
+
+              <Field label="قيمة الصفقة" value={money(deal.value)} />
+
+              <Field label="الخصم" value={`${deal.discount ?? 0}%`} />
+
+              <Field label="صافي قيمة الصفقة" value={money(deal.net_value)} />
+
+              <Field
+                label="حالة العمولة"
+                value={
+                  COMMISSION_STATUSES[deal.commission_status] ||
+                  deal.commission_status
+                }
+              />
+
+              <Field label="المصدر" value={customer.source?.name} />
+
+              <Field
+                label="العمولة المتوقعة"
+                value={money(deal.expected_commission)}
+              />
+
+              <Field
+                label="تاريخ الإغلاق المتوقع"
+                value={formatDate(deal.expected_close_date)}
+              />
+
+              <Field
+                label="احتمالية الإغلاق"
+                value={`${deal.closing_probability ?? 0}%`}
+              />
             </div>
+
+            {deal.notes && (
+              <div className="mt-4 pt-3 border-t border-line">
+                <div className="text-[9.5px] text-neutral-400">
+                  ملاحظات الصفقة
+                </div>
+
+                <p className="mt-1 text-[11px] text-ink whitespace-pre-wrap">
+                  {deal.notes}
+                </p>
+              </div>
+            )}
           </Card>
 
+          {/* Customer Information */}
           <Card title="بيانات العميل">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4">
-              <Field label="الاسم الكامل" value={deal.customer} />
-              <Field label="الشركة" value={deal.company} />
-              <Field label="الوظيفة" value={deal.job} />
-              <Field label="المدينة" value={deal.city} />
-              <Field label="الهاتف" value={deal.phone} />
-              <Field label="البريد الإلكتروني" value={deal.email} />
+              <Field label="الاسم الكامل" value={customer.name} />
+              <Field label="الهاتف" value={customer.phone} />
+              <Field label="البريد الإلكتروني" value={customer.email} />
+              <Field label="مصدر العميل" value={customer.source?.name} />
             </div>
           </Card>
 
-          <Card title="إضافة ملاحظة">
-            <div className="flex flex-wrap gap-1.5 justify-start">
-              {NOTE_TYPES.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setNoteType(t)}
-                  className={`h-6 rounded-full px-3 text-[10.5px] border transition-colors ${
-                    noteType === t
-                      ? "bg-ink text-white border-ink"
-                      : "bg-white text-neutral-600 border-line"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={5}
-              placeholder="اكتب ملاحظاتك هنا... مثال: ملخص المحادثة، ما طلبه العميل، وما تم الاتفاق عليه."
-              className="mt-3 w-full resize-none rounded-lg border border-line p-3 text-[11px] outline-none focus:border-neutral-400"
-            />
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={saveNote}
-                  className="h-8 rounded-lg bg-ink text-white px-4 text-[11px] font-semibold"
-                >
-                  حفظ في السجل
-                </button>
-                <button
-                  onClick={() => setText("")}
-                  className="h-8 rounded-lg border border-line px-4 text-[11px]"
-                >
-                  إلغاء
-                </button>
+          {/* Partner Information */}
+          {partner && (
+            <Card title="بيانات الشريك">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <Field label="الاسم" value={partner.name} />
+                <Field label="الهاتف" value={partner.phone} />
+                <Field label="البريد الإلكتروني" value={partner.email} />
               </div>
-              <div className="text-[10px] text-neutral-500 border border-line rounded-lg px-3 py-1.5">
-                موعد المتابعة القادمة:{" "}
-                <b className="text-ink">{deal.nextFollowUp}</b>
-              </div>
-            </div>
+            </Card>
+          )}
 
-            {deal.notes.length > 0 && (
-              <ul className="mt-4 space-y-2 border-t border-line pt-3">
-                {deal.notes.map((n) => (
-                  <li key={n.id} className="text-[11px]">
-                    <div className="flex items-center gap-2 text-[9.5px] text-neutral-400">
-                      <span className="bg-neutral-100 text-neutral-600 rounded-full px-2">
-                        {n.kind}
-                      </span>
-                      {n.when}
-                    </div>
-                    <p className="mt-1 text-ink whitespace-pre-wrap">
-                      {n.text}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+          {/* Commissions */}
+          <Card title="العمولات">
+            {commissions.length === 0 ? (
+              <p className="text-[11px] text-neutral-400">
+                لا توجد عمولات مسجلة لهذه الصفقة.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-right text-[10.5px]">
+                  <thead>
+                    <tr className="text-neutral-400 border-b border-line">
+                      <th className="py-2 px-2">المستفيد</th>
+                      <th className="py-2 px-2">قيمة الصفقة</th>
+                      <th className="py-2 px-2">النسبة</th>
+                      <th className="py-2 px-2">العمولة</th>
+                      <th className="py-2 px-2">الحالة</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {commissions.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="border-b border-line last:border-0"
+                      >
+                        <td className="py-3 px-2 font-semibold text-ink">
+                          {item.beneficiary_name}
+                        </td>
+
+                        <td className="py-3 px-2">{money(item.deal_value)}</td>
+
+                        <td className="py-3 px-2">{item.commission_rate}%</td>
+
+                        <td className="py-3 px-2 font-bold">
+                          {money(item.commission_amount)}
+                        </td>
+
+                        <td className="py-3 px-2">
+                          {COMMISSION_STATUSES[item.status] || item.status}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </Card>
         </div>
 
-        {/* Secondary column */}
+        {/* Secondary Column */}
         <div className="space-y-4 min-w-0">
+          {/* Assigned User */}
           <Card title="المسؤول عن الصفقة">
             <div className="flex items-center gap-2.5 rounded-lg bg-orange-50/60 p-2.5">
               <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 grid place-items-center text-[11px] font-bold">
-                {deal.owner[0]}
+                {assignedTo.name?.[0] || "؟"}
               </span>
-              <div className="leading-tight">
+
+              <div className="leading-tight min-w-0">
                 <div className="text-[11.5px] font-bold text-orange-600">
-                  {deal.owner}
+                  {assignedTo.name || "غير محدد"}
                 </div>
-                <div className="text-[9.5px] text-neutral-500">
-                  {deal.ownerRole}
+
+                <div className="text-[9.5px] text-neutral-500 break-all">
+                  {assignedTo.email || ""}
                 </div>
               </div>
             </div>
           </Card>
 
-          <Card title="سجل التواصل">
-            <div className="rounded-lg bg-neutral-100 p-3 text-[10.5px] space-y-1">
-              <div className="text-[9.5px] text-neutral-500">إجراء قادم</div>
-              <div className="font-bold text-ink">{deal.nextStep}</div>
-              <div className="text-neutral-500">{deal.nextFollowUp}</div>
+          {/* Created By */}
+          <Card title="منشئ الصفقة">
+            <div className="text-[11px] font-bold text-ink">
+              {deal.created_by?.name || "غير محدد"}
             </div>
-            <ul className="mt-3 space-y-3">
-              {deal.log.map((l) => (
-                <li key={l.id} className="flex gap-2">
-                  <span
-                    className={`mt-1 w-1.5 h-1.5 shrink-0 rounded-full ${l.done ? "bg-orange-500" : "bg-neutral-300"}`}
-                  />
-                  <div className="text-[10.5px] min-w-0">
-                    <div className="font-semibold text-ink break-words">
-                      {l.text}
-                    </div>
-                    <div className="text-[9.5px] text-neutral-400">
-                      {l.when} · {l.by}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+
+            <div className="mt-1 text-[9.5px] text-neutral-500 break-all">
+              {deal.created_by?.email || ""}
+            </div>
           </Card>
+
+          {/* Shared Communication Log */}
+          <CommunicationLog
+            logs={deal.communication_logs || []}
+            onAdd={handleAddCommunication}
+            loading={savingCommunication}
+          />
         </div>
       </div>
     </div>
