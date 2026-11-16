@@ -498,23 +498,21 @@ export default function PotentialClients() {
                         </button>
 
                         <button
-                          className="btn !px-3 !h-7 !bg-[#FFF3E8] !text-[#C56A20] !border-transparent !rounded-3xl"
+                          className=" !px-3 !h-7   !border-transparent !rounded-3xl"
                           onClick={() => handleEditLead(c.id)}
                           disabled={actionLoading}
                           title="تعديل"
                         >
                           <Pencil size={13} />
-                          تعديل
                         </button>
 
                         <button
-                          className="btn !px-3 !h-7 !bg-[#FDECEC] !text-red-600 !border-transparent !rounded-3xl"
+                          className=" !px-3 !h-7   !border-transparent !rounded-3xl"
                           onClick={() => handleArchiveLead(c.id, c.name)}
                           disabled={actionLoading}
                           title="أرشفة"
                         >
                           <Archive size={13} />
-                          أرشفة
                         </button>
                       </div>
                     </td>
