@@ -116,6 +116,153 @@ function Metric({ label, value, sub, subCls = "text-neutral-400" }) {
   );
 }
 
+/* ---------- Edit Deal Modal ---------- */
+
+function EditDealModal({ editForm, setEditForm, onSave, onClose, saving }) {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      dir="rtl"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-line pb-3">
+          <div>
+            <h2 className="text-[16px] font-extrabold text-ink">
+              تعديل بيانات الصفقة
+            </h2>
+
+            <p className="mt-1 text-[10px] text-neutral-400">
+              يمكنك تعديل بيانات الصفقة وحفظ التغييرات
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:opacity-50"
+          >
+            <X size={17} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Stage */}
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold text-neutral-500">
+              مرحلة الصفقة
+            </label>
+
+            <select
+              name="stage"
+              value={editForm.stage}
+              onChange={handleChange}
+              className="h-10 w-full rounded-lg border border-line bg-white px-3 text-[12px] outline-none focus:border-neutral-400"
+            >
+              {STAGES.map((stage) => (
+                <option key={stage.value} value={stage.value}>
+                  {stage.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Probability */}
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold text-neutral-500">
+              احتمالية الإغلاق %
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              max="100"
+              name="closing_probability"
+              value={editForm.closing_probability}
+              onChange={handleChange}
+              className="h-10 w-full rounded-lg border border-line px-3 text-[12px] outline-none focus:border-neutral-400"
+            />
+          </div>
+
+          {/* Deal Value */}
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold text-neutral-500">
+              قيمة الصفقة
+            </label>
+
+            <input
+              type="number"
+              min="0"
+              name="value"
+              value={editForm.value}
+              onChange={handleChange}
+              className="h-10 w-full rounded-lg border border-line px-3 text-[12px] outline-none focus:border-neutral-400"
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold text-neutral-500">
+              ملاحظات الصفقة
+            </label>
+
+            <textarea
+              name="notes"
+              value={editForm.notes}
+              onChange={handleChange}
+              rows={3}
+              className="w-full rounded-lg border border-line p-3 text-[12px] outline-none resize-none focus:border-neutral-400"
+              placeholder="أضف ملاحظات الصفقة..."
+            />
+          </div>
+        </div>
+
+        {/* Modal Actions */}
+        <div className="mt-6 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="h-9 rounded-lg bg-ink px-5 text-[11px] font-semibold text-white flex items-center gap-2 disabled:opacity-50"
+          >
+            {saving ? (
+              <LoaderCircle size={14} className="animate-spin" />
+            ) : (
+              <Save size={14} />
+            )}
+
+            {saving ? "جاري الحفظ..." : "حفظ التعديلات"}
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="h-9 rounded-lg border border-line px-5 text-[11px] text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Deal Details ---------- */
 
 export default function DealDetails() {
@@ -188,14 +335,17 @@ export default function DealDetails() {
   const phone = String(customer.phone || "");
   const whatsappNumber = phone.replace(/\D/g, "");
 
-  // Edit form
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
+  // Open edit modal
+  const openEditModal = () => {
+    setEditForm({
+      stage: deal.stage || "new_customer",
+      closing_probability: deal.closing_probability ?? 0,
+      value: deal.value ?? 0,
+      notes: deal.notes || "",
+    });
 
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setError("");
+    setEditing(true);
   };
 
   // Update deal
@@ -450,9 +600,9 @@ export default function DealDetails() {
             )}
           </div>
 
-          <button className="btn" onClick={() => setEditing((prev) => !prev)}>
-            {editing ? <X size={12} /> : <Pencil size={12} />}
-            {editing ? "إلغاء التعديل" : "تعديل"}
+          <button className="btn" onClick={openEditModal}>
+            <Pencil size={12} />
+            تعديل
           </button>
 
           <button
@@ -487,106 +637,6 @@ export default function DealDetails() {
           </p>
         </div>
       </div>
-
-      {/* Edit form */}
-      {editing && (
-        <Card title="تعديل بيانات الصفقة" className="mt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div>
-              <label className="block text-[10px] text-neutral-500 mb-1.5">
-                مرحلة الصفقة
-              </label>
-
-              <select
-                name="stage"
-                value={editForm.stage}
-                onChange={handleEditChange}
-                className="w-full h-9 rounded-lg border border-line px-2 text-[11px] outline-none"
-              >
-                {STAGES.map((stage) => (
-                  <option key={stage.value} value={stage.value}>
-                    {stage.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[10px] text-neutral-500 mb-1.5">
-                احتمالية الإغلاق %
-              </label>
-
-              <input
-                type="number"
-                min="0"
-                max="100"
-                name="closing_probability"
-                value={editForm.closing_probability}
-                onChange={handleEditChange}
-                className="w-full h-9 rounded-lg border border-line px-3 text-[11px] outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] text-neutral-500 mb-1.5">
-                قيمة الصفقة
-              </label>
-
-              <input
-                type="number"
-                min="0"
-                name="value"
-                value={editForm.value}
-                onChange={handleEditChange}
-                className="w-full h-9 rounded-lg border border-line px-3 text-[11px] outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] text-neutral-500 mb-1.5">
-                ملاحظات الصفقة
-              </label>
-
-              <input
-                name="notes"
-                value={editForm.notes}
-                onChange={handleEditChange}
-                className="w-full h-9 rounded-lg border border-line px-3 text-[11px] outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={handleSaveDeal}
-              disabled={saving}
-              className="h-8 rounded-lg bg-ink text-white px-4 text-[11px] font-semibold flex items-center gap-2 disabled:opacity-50"
-            >
-              {saving ? (
-                <LoaderCircle size={13} className="animate-spin" />
-              ) : (
-                <Save size={13} />
-              )}
-              حفظ التعديلات
-            </button>
-
-            <button
-              onClick={() => {
-                setEditing(false);
-                setEditForm({
-                  stage: deal.stage,
-                  closing_probability: deal.closing_probability,
-                  value: deal.value,
-                  notes: deal.notes || "",
-                });
-              }}
-              className="h-8 rounded-lg border border-line px-4 text-[11px]"
-            >
-              إلغاء
-            </button>
-          </div>
-        </Card>
-      )}
 
       {/* Metrics */}
       <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -860,6 +910,17 @@ export default function DealDetails() {
           />
         </div>
       </div>
+
+      {/* Edit Deal Modal */}
+      {editing && (
+        <EditDealModal
+          editForm={editForm}
+          setEditForm={setEditForm}
+          onSave={handleSaveDeal}
+          onClose={() => setEditing(false)}
+          saving={saving}
+        />
+      )}
     </div>
   );
 }

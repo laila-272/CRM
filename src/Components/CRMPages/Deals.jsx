@@ -132,32 +132,25 @@ function DealCard({ d, onDelete, deleting }) {
       </div>
 
       <Link to={`/deals/${d.id}`} className="block mt-2">
-        <div className="text-[12.5px] font-bold text-ink">{d.title}</div>
+        <div className="text-[12.5px] font-bold text-ink">{d.customer}</div>
 
-        <div className="text-[10.5px] text-neutral-500">
-          العميل: {d.customer}
-        </div>
+        <div className="text-[10.5px] text-neutral-500">{d.title}</div>
 
-        <div className="mt-2 text-[10px] text-neutral-500 leading-relaxed">
-          قيمة الصفقة:{" "}
-          <span className="text-ink font-semibold">
-            {formatMoney(d.netValue)}
-          </span>
-        </div>
-
-        <div className="mt-2 text-[10px] text-neutral-500">
+        {/* <div className="mt-2 text-[10px] text-neutral-500">
           موعد الإغلاق المتوقع:{" "}
           <span className="text-ink">{formatDate(d.expectedClose)}</span>
+        </div> */}
+        <div className="mt-2 text-[10px] text-neutral-500">
+          الخطوة التالية:  {" "}
+          <span className="text-ink">{d.stage}</span>
         </div>
-
         <div className="mt-2.5 flex items-center justify-between gap-2 text-[9.5px]">
-          <span className="bg-neutral-100 text-neutral-500 rounded-md px-1.5 py-0.5">
-            {d.number}
-          </span>
-
           <span className="bg-neutral-100 text-ink rounded-md px-1.5 py-0.5 truncate">
             {d.owner}
           </span>
+          {/* <span className="bg-neutral-100 text-neutral-500 rounded-md px-1.5 py-0.5">
+            {d.number}
+          </span> */}
         </div>
       </Link>
     </div>
