@@ -10,7 +10,12 @@ import {
   Users,
 } from "lucide-react";
 
-import api from "../../Services/api-temp.js";
+import {
+  getRolePermissions,
+  getTeamRoles,
+  updateRolePermissions,
+} from "../../Services/teamService.js";
+
 import { PageHeader, card, btnDark, btnLight } from "../Shared/ui.jsx";
 import { Toast, useToast } from "../CRMPages/TaskModal.jsx";
 
@@ -173,7 +178,7 @@ export default function UsersPermissions() {
 
   const [toast, notify] = useToast();
 
-  // Load full permissions catalog + selected role assignments
+  // Load role permissions and full permissions catalog
   useEffect(() => {
     let active = true;
 
@@ -182,21 +187,17 @@ export default function UsersPermissions() {
       setError("");
 
       try {
-        // 1. Get selected role and its assigned permissions
-        const roleResponse = await api.get(
-          `/api/team/roles/${roleId}/permissions`,
-        );
+        // 1. Get selected role permissions
+        const roleData = await getRolePermissions(roleId);
 
-        const roleData = roleResponse.data?.data;
-
-        if (!roleResponse.data?.success || !roleData) {
-          throw new Error(roleResponse.data?.message || "تعذر تحميل الصلاحيات");
+        if (!roleData?.role) {
+          throw new Error("تعذر تحميل بيانات الدور");
         }
 
         // 2. Find Owner role
-        const rolesResponse = await api.get("/api/team/roles");
+        const roles = await getTeamRoles();
 
-        const owner = rolesResponse.data?.data?.find(
+        const owner = roles.find(
           (item) => item.name?.trim().toLowerCase() === "owner",
         );
 
@@ -204,19 +205,16 @@ export default function UsersPermissions() {
           throw new Error("تعذر العثور على دور Owner");
         }
 
-        // 3. Always get the full catalog from Owner
-        const ownerResponse = await api.get(
-          `/api/team/roles/${owner.id}/permissions`,
-        );
+        // 3. Get full permissions catalog from Owner
+        const ownerData = await getRolePermissions(owner.id);
 
-        const availableGroups =
-          ownerResponse.data?.data?.grouped_permissions || [];
+        const availableGroups = ownerData?.grouped_permissions || [];
 
         if (availableGroups.length === 0) {
           throw new Error("قائمة الصلاحيات المتاحة فارغة");
         }
 
-        // 4. Get assigned permissions ONLY from selected role
+        // 4. Get assigned permissions from selected role
         const assignedPermissions = roleData.permissions || [];
 
         const assignedIds = assignedPermissions.map((permission) =>
@@ -313,34 +311,14 @@ export default function UsersPermissions() {
 
       const permissionIds = allIds.filter((id) => selected.has(id));
 
-      console.log("GROUPS:", groups);
-      console.log("ALL IDS:", allIds);
-      console.log("SELECTED:", [...selected]);
-      console.log("PERMISSION IDS:", permissionIds);
-
-      const response = await api.post(`/api/team/roles/${roleId}/permissions`, {
-        permissions: permissionIds,
-      });
-
-      console.log("PERMISSIONS RESPONSE:", response.data);
-      console.log("GROUPED:", response.data?.data?.grouped_permissions);
-      console.log("ASSIGNED:", response.data?.data?.permissions);
-
-      if (response.data?.success === false) {
-        throw new Error(response.data?.message || "فشل حفظ الصلاحيات");
-      }
+      const response = await updateRolePermissions(roleId, permissionIds);
 
       setSaved(permissionIds);
       setSelected(new Set(permissionIds));
 
-      notify(response.data?.message || "تم حفظ الصلاحيات بنجاح");
+      notify(response?.message || "تم حفظ الصلاحيات بنجاح");
     } catch (err) {
-      console.error("SAVE STATUS:", err.response?.status);
-      console.error("SAVE RESPONSE:", err.response?.data);
-
-      console.error("SENT DATA:", {
-        permissions: allIds.filter((id) => selected.has(id)),
-      });
+      console.error("Save permissions error:", err);
 
       const message =
         err.response?.data?.message ||

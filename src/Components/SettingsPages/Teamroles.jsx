@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, Plus, Shield, Trash2, Users } from "lucide-react";
 
-import api from "../../Services/api-temp.js";
+import {
+  getTeamRoles,
+  createTeamRole,
+  deleteTeamRole,
+} from "../../Services/teamService.js";
+
 import { PageHeader, card, btnDark, btnLight } from "../Shared/ui.jsx";
 import { Toast, useToast } from "../CRMPages/TaskModal.jsx";
 import { memberCountLabel } from "../../data/Team.js";
@@ -26,16 +31,12 @@ function RoleModal({ onClose, onDone }) {
       setSaving(true);
       setError("");
 
-      const response = await api.post("/api/team/roles", {
+      const response = await createTeamRole({
         name: name.trim(),
         description: description.trim(),
       });
 
-      if (!response.data?.success) {
-        throw new Error(response.data?.message || "فشل إنشاء الدور");
-      }
-
-      onDone("تمت إضافة الدور بنجاح", response.data.data);
+      onDone("تمت إضافة الدور بنجاح", response.data);
     } catch (err) {
       console.error("Create role error:", err);
 
@@ -118,20 +119,19 @@ export default function TeamRoles() {
 
   const [toast, notify] = useToast();
 
+  // Get all roles
   const fetchRoles = async () => {
     try {
       setLoading(true);
       setPageError("");
 
-      const response = await api.get("/api/team/roles");
+      const data = await getTeamRoles();
 
-console.log("FULL ROLES RESPONSE:", response.data);
-console.log("ROLES DATA:", response.data?.data);
-      if (!response.data?.success || !Array.isArray(response.data?.data)) {
-        throw new Error(response.data?.message || "تعذر تحميل الأدوار");
+      if (!Array.isArray(data)) {
+        throw new Error("تعذر تحميل الأدوار");
       }
 
-      setRoles(response.data.data);
+      setRoles(data);
     } catch (err) {
       console.error("Fetch roles error:", err);
 
@@ -149,6 +149,7 @@ console.log("ROLES DATA:", response.data?.data);
     fetchRoles();
   }, []);
 
+  // Delete role
   const handleDelete = async (role) => {
     const isOwner = role.name?.trim().toLowerCase() === "owner";
 
@@ -164,15 +165,11 @@ console.log("ROLES DATA:", response.data?.data);
     if (!window.confirm(`هل تريدين حذف الدور "${role.name}"؟`)) return;
 
     try {
-      const response = await api.delete(`/api/team/roles/${role.id}`);
-
-      if (response.data?.success === false) {
-        throw new Error(response.data?.message || "فشل حذف الدور");
-      }
+      const response = await deleteTeamRole(role.id);
 
       setRoles((current) => current.filter((item) => item.id !== role.id));
 
-      notify(response.data?.message || "تم حذف الدور بنجاح");
+      notify(response?.message || "تم حذف الدور بنجاح");
     } catch (err) {
       console.error("Delete role error:", err);
 
@@ -281,7 +278,10 @@ console.log("ROLES DATA:", response.data?.data);
         <RoleModal
           onClose={() => setModal(false)}
           onDone={(message, newRole) => {
-            setRoles((current) => [...current, newRole]);
+            if (newRole) {
+              setRoles((current) => [...current, newRole]);
+            }
+
             setModal(false);
             notify(message);
           }}

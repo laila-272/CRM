@@ -1,6 +1,7 @@
 import api from "./api-temp.js";
 
-// Get all team members
+// ==================== Team Members ====================
+
 export const getTeamMembers = async () => {
   try {
     const response = await api.get("/api/team/members");
@@ -9,17 +10,36 @@ export const getTeamMembers = async () => {
       throw new Error(response.data.message || "Failed to get team members");
     }
 
-    return response.data.data;
+    return response.data.data || [];
   } catch (error) {
-    console.error(
-      "GET TEAM MEMBERS ERROR:",
-      error.response?.data || error.message,
-    );
+    console.error("Get team members error:", error);
     throw error;
   }
 };
 
-// Get all team roles
+export const createTeamInvitation = async ({ name, email, role_id }) => {
+  try {
+    const response = await api.post("/api/team/members", {
+      name,
+      email,
+      role_id,
+    });
+
+    if (!response.data.success) {
+      throw new Error(
+        response.data.message || "Failed to create team invitation",
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Create team invitation error:", error);
+    throw error;
+  }
+};
+
+// ==================== Team Roles ====================
+
 export const getTeamRoles = async () => {
   try {
     const response = await api.get("/api/team/roles");
@@ -28,35 +48,80 @@ export const getTeamRoles = async () => {
       throw new Error(response.data.message || "Failed to get team roles");
     }
 
-    return response.data.data;
+    return response.data.data || [];
   } catch (error) {
-    console.error(
-      "GET TEAM ROLES ERROR:",
-      error.response?.data || error.message,
-    );
+    console.error("Get team roles error:", error);
     throw error;
   }
 };
 
-// Create team invitation
-export const createTeamInvitation = async ({ name, email, role_id }) => {
+export const createTeamRole = async ({ name, description }) => {
   try {
-    const response = await api.post("/api/team/members", {
+    const response = await api.post("/api/team/roles", {
       name,
-      email,
-      role_id: Number(role_id),
+      description,
     });
 
     if (!response.data.success) {
-      throw new Error(response.data.message || "Failed to send invitation");
+      throw new Error(response.data.message || "Failed to create role");
     }
 
-    return response.data.data;
+    return response.data;
   } catch (error) {
-    console.error(
-      "CREATE TEAM INVITATION ERROR:",
-      error.response?.data || error.message,
-    );
+    console.error("Create team role error:", error);
+    throw error;
+  }
+};
+
+export const deleteTeamRole = async (roleId) => {
+  try {
+    const response = await api.delete(`/api/team/roles/${roleId}`);
+
+    if (response.data?.success === false) {
+      throw new Error(response.data.message || "Failed to delete role");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Delete team role error:", error);
+    throw error;
+  }
+};
+
+// ==================== Role Permissions ====================
+
+export const getRolePermissions = async (roleId) => {
+  try {
+    const response = await api.get(`/api/team/roles/${roleId}/permissions`);
+
+    if (!response.data.success) {
+      throw new Error(
+        response.data.message || "Failed to get role permissions",
+      );
+    }
+
+    return response.data.data || {};
+  } catch (error) {
+    console.error("Get role permissions error:", error);
+    throw error;
+  }
+};
+
+export const updateRolePermissions = async (roleId, permissionIds) => {
+  try {
+    const response = await api.post(`/api/team/roles/${roleId}/permissions`, {
+      permissions: permissionIds,
+    });
+
+    if (!response.data.success) {
+      throw new Error(
+        response.data.message || "Failed to update role permissions",
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Update role permissions error:", error);
     throw error;
   }
 };
